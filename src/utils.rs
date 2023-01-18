@@ -71,7 +71,11 @@ pub fn fit_dimensions(width: u32, height: u32, cols: Option<u32>, rows: Option<u
 }
 
 pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), std::io::Error> {
-    let (tempfile, pathbuf) = tempfile::Builder::new().prefix(prefix).tempfile()?.keep()?;
+    let (tempfile, pathbuf) = tempfile::Builder::new()
+        .prefix(prefix)
+        .tempfile_in("/tmp/")?
+        .keep()?;
+
     Ok((tempfile, pathbuf))
 }
 

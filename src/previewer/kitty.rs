@@ -3,7 +3,7 @@ use crate::utils::{fit_dimensions, get_temp_file, move_cursor, restore_cursor, s
 use base64::{engine::general_purpose, Engine as _};
 use std::io::{Error, Write};
 
-const KITTY_PREFIX: &str = "tty-graphics-protocol.pic.tmp";
+const KITTY_PREFIX: &str = "tty-graphics-protocol.pic.";
 const PROTOCOL_START: &str = "\x1b_G";
 const PROTOCOL_END: &str = "\x1b\\";
 
