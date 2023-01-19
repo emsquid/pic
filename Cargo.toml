@@ -3,8 +3,9 @@ name = "pic"
 version = "0.1.0"
 edition = "2021"
 authors = ["Emanuel <emanuel.morille@proton.me>"]
-description = "Preview Images with a CLI."
+description = "Preview Images in a CLI."
 repository = "https://github.com/emsquid/pic"
+readme = "README.md"
 
 [dependencies]
 base64 = "0.21.0"
