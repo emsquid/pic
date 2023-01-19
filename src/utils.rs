@@ -4,16 +4,20 @@ use std::{
     path::PathBuf,
 };
 
-pub fn move_cursor(stdout: &mut impl Write, x: u32, y: u32) -> Result<(), std::io::Error> {
-    stdout.write(b"\x1b[s")?;
+use image::DynamicImage;
 
-    let binding = format!("\x1b[{}:{}H", y + 1, x + 1);
-    let buf = binding.as_bytes();
-    stdout.write(buf)?;
+pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
+    stdout.write(b"\x1b[s")?;
     stdout.flush()
 }
 
-pub fn restore_cursor(stdout: &mut impl Write) -> Result<(), std::io::Error> {
+pub fn move_cursor(stdout: &mut impl Write, x: u32, y: u32) -> Result<(), Error> {
+    let binding = format!("\x1b[{}:{}H", y + 1, x + 1);
+    stdout.write(binding.as_bytes())?;
+    stdout.flush()
+}
+
+pub fn restore_cursor(stdout: &mut impl Write) -> Result<(), Error> {
     stdout.write(b"\x1b[u")?;
     stdout.flush()
 }
@@ -42,7 +46,13 @@ pub fn get_cell_size() -> (u32, u32) {
     return (xpixel / cols, ypixel / rows);
 }
 
-pub fn fit_dimensions(width: u32, height: u32, cols: Option<u32>, rows: Option<u32>) -> (u32, u32) {
+pub fn fit_bounds(
+    width: u32,
+    height: u32,
+    cols: Option<u32>,
+    rows: Option<u32>,
+    upscale: bool,
+) -> (u32, u32) {
     let term_size = get_term_size();
     let (col_size, row_size) = match get_cell_size() {
         (0, 0) => (10, 20),
@@ -56,7 +66,7 @@ pub fn fit_dimensions(width: u32, height: u32, cols: Option<u32>, rows: Option<u
     };
     let (bound_width, bound_height) = (cols * col_size, rows * row_size);
 
-    if width <= bound_width && height <= bound_height {
+    if !upscale && width < bound_width && height < bound_height {
         return (width / col_size, height / row_size);
     }
 
@@ -70,6 +80,21 @@ pub fn fit_dimensions(width: u32, height: u32, cols: Option<u32>, rows: Option<u
     }
 }
 
+pub fn resize(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
+    image.resize_exact(width, height, image::imageops::Triangle)
+}
+
+pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
+    rgb[3] < 10
+}
+
+pub fn ansi_from_rgb(rgb: [u8; 4], bg: bool) -> String {
+    match bg {
+        false => format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
+        true => format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
+    }
+}
+
 pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), std::io::Error> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
@@ -80,6 +105,6 @@ pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), std::io::Error> {
 }
 
 pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result<(), Error> {
-    file.write_all(buffer)?;
+    file.write(buffer)?;
     file.flush()
 }
