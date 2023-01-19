@@ -1,6 +1,6 @@
 use crate::options::{Action, Options};
 use crate::utils::{
-    fit_bounds, get_temp_file, move_cursor, restore_cursor, save_cursor, save_in_tmp_file,
+    fit_in_bounds, get_temp_file, move_cursor, restore_cursor, save_cursor, save_in_tmp_file,
 };
 use base64::{engine::general_purpose, Engine as _};
 use std::io::{Error, Write};
@@ -52,7 +52,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             let (width, height) = (size.width as u32, size.height as u32);
 
             let (cols, rows) =
-                fit_bounds(width, height, options.cols, options.rows, options.upscale);
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
 
             (format!("a=p,c={},r={},i={},q=2", cols, rows, id), None)
         }
@@ -63,7 +63,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             drop(tempfile);
 
             let (cols, rows) =
-                fit_bounds(width, height, options.cols, options.rows, options.upscale);
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
 
             (
                 format!(

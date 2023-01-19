@@ -1,10 +1,9 @@
+use image::DynamicImage;
 use std::{
     fs::File,
     io::{Error, Write},
     path::PathBuf,
 };
-
-use image::DynamicImage;
 
 pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
     stdout.write(b"\x1b[s")?;
@@ -12,7 +11,7 @@ pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
 }
 
 pub fn move_cursor(stdout: &mut impl Write, x: u32, y: u32) -> Result<(), Error> {
-    let binding = format!("\x1b[{}:{}H", y + 1, x + 1);
+    let binding = format!("\x1b[{};{}H", y + 1, x + 1);
     stdout.write(binding.as_bytes())?;
     stdout.flush()
 }
@@ -46,7 +45,7 @@ pub fn get_cell_size() -> (u32, u32) {
     return (xpixel / cols, ypixel / rows);
 }
 
-pub fn fit_bounds(
+pub fn fit_in_bounds(
     width: u32,
     height: u32,
     cols: Option<u32>,
@@ -88,7 +87,7 @@ pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
     rgb[3] < 10
 }
 
-pub fn ansi_from_rgb(rgb: [u8; 4], bg: bool) -> String {
+pub fn convert_to_ansi(rgb: [u8; 4], bg: bool) -> String {
     match bg {
         false => format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
         true => format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),

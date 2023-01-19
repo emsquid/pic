@@ -1,6 +1,5 @@
 use crate::options::{Action, Options};
-use crate::utils::{ansi_from_rgb, fit_bounds, move_cursor, pixel_is_transparent, resize};
-use image::GenericImageView;
+use crate::utils::{convert_to_ansi, fit_in_bounds, move_cursor, pixel_is_transparent, resize};
 use std::io::{Error, Write};
 
 const TOP_BLOCK: &str = "\u{2580}";
@@ -17,8 +16,8 @@ fn write_color_block(
 
 fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     let image = image::open(&options.path).unwrap();
-    let (width, height) = image.dimensions();
-    let (cols, rows) = fit_bounds(width, height, options.cols, options.rows, options.upscale);
+    let (width, height) = (image.width(), image.height());
+    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
     let rgba = resize(&image, cols, rows * 2).to_rgba8();
 
     let mut backgrounds: Vec<[u8; 4]> = vec![[0; 4]; cols as usize];
@@ -37,17 +36,17 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
                     if pixel_is_transparent(backgrounds[c]) {
                         write_color_block(stdout, " ", "", "")?;
                     } else {
-                        let ansi_fg = ansi_from_rgb(backgrounds[c], false);
+                        let ansi_fg = convert_to_ansi(backgrounds[c], false);
                         write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?;
                     };
                 }
                 (false, false) => {
                     if pixel_is_transparent(backgrounds[c]) {
-                        let ansi_fg = ansi_from_rgb(rgb, false);
+                        let ansi_fg = convert_to_ansi(rgb, false);
                         write_color_block(stdout, BOTTOM_BLOCK, "", &ansi_fg)?;
                     } else {
-                        let ansi_bg = ansi_from_rgb(backgrounds[c], true);
-                        let ansi_fg = ansi_from_rgb(rgb, false);
+                        let ansi_bg = convert_to_ansi(backgrounds[c], true);
+                        let ansi_fg = convert_to_ansi(rgb, false);
                         write_color_block(stdout, BOTTOM_BLOCK, &ansi_bg, &ansi_fg)?;
                     };
                 }
