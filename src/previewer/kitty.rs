@@ -1,9 +1,11 @@
 use crate::options::{Action, Options};
-use crate::utils::{fit_dimensions, get_temp_file, move_cursor, restore_cursor, save_in_tmp_file};
+use crate::utils::{
+    fit_bounds, get_temp_file, move_cursor, restore_cursor, save_cursor, save_in_tmp_file,
+};
 use base64::{engine::general_purpose, Engine as _};
 use std::io::{Error, Write};
 
-const KITTY_PREFIX: &str = "tty-graphics-protocol.pic.";
+const KITTY_PREFIX: &str = "pic-tty-graphics-protocol.";
 const PROTOCOL_START: &str = "\x1b_G";
 const PROTOCOL_END: &str = "\x1b\\";
 
@@ -49,7 +51,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             let size = imagesize::size(&options.path).unwrap();
             let (width, height) = (size.width as u32, size.height as u32);
 
-            let (cols, rows) = fit_dimensions(width, height, options.cols, options.rows);
+            let (cols, rows) =
+                fit_bounds(width, height, options.cols, options.rows, options.upscale);
 
             (format!("a=p,c={},r={},i={},q=2", cols, rows, id), None)
         }
@@ -59,7 +62,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             save_in_tmp_file(image.as_raw(), &mut tempfile)?;
             drop(tempfile);
 
-            let (cols, rows) = fit_dimensions(width, height, options.cols, options.rows);
+            let (cols, rows) =
+                fit_bounds(width, height, options.cols, options.rows, options.upscale);
 
             (
                 format!(
@@ -74,11 +78,15 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     match (options.x, options.y) {
         (None, None) => send_graphics_command(stdout, &command, payload),
         _ => {
+            save_cursor(stdout)?;
             move_cursor(stdout, options.x.unwrap_or(0), options.y.unwrap_or(0))?;
             send_graphics_command(stdout, &command, payload)?;
             restore_cursor(stdout)
         }
-    }
+    }?;
+
+    stdout.write(b"\n")?;
+    stdout.flush()
 }
 
 fn load_and_display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {

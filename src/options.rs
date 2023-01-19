@@ -41,4 +41,7 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
+    /// Whether to upscale or not
+    #[arg(short, long, default_value_t = false)]
+    pub upscale: bool,
 }
