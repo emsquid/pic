@@ -1,6 +1,6 @@
 [package]
 name = "pic"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Emanuel <emanuel.morille@proton.me>"]
 description = "Preview Images in a CLI."
@@ -13,4 +13,5 @@ clap = { version = "4.1.1", features = ["derive"] }
 image = "0.24.5"
 imagesize = "0.11.0"
 libc = "0.2.139"
+sixel-rs = "0.3.3"
 tempfile = "3.3.0"
