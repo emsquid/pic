@@ -1,7 +1,5 @@
 use crate::options::{Action, Options};
-use crate::utils::{
-    fit_in_bounds, get_temp_file, move_cursor, restore_cursor, save_cursor, save_in_tmp_file,
-};
+use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
 use std::io::{Error, Write};
 
@@ -75,15 +73,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
         }
     };
 
-    match (options.x, options.y) {
-        (None, None) => send_graphics_command(stdout, &command, payload),
-        _ => {
-            save_cursor(stdout)?;
-            move_cursor(stdout, options.x.unwrap_or(0), options.y.unwrap_or(0))?;
-            send_graphics_command(stdout, &command, payload)?;
-            restore_cursor(stdout)
-        }
-    }?;
+    move_cursor(stdout, options.x, options.y)?;
+    send_graphics_command(stdout, &command, payload)?;
 
     stdout.write(b"\n")?;
     stdout.flush()

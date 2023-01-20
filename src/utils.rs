@@ -10,10 +10,35 @@ pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
     stdout.flush()
 }
 
-pub fn move_cursor(stdout: &mut impl Write, x: u32, y: u32) -> Result<(), Error> {
-    let binding = format!("\x1b[{};{}H", y + 1, x + 1);
+pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result<(), Error> {
+    let binding = format!("\x1b[{}G", col + 1);
     stdout.write(binding.as_bytes())?;
     stdout.flush()
+}
+
+pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result<(), Error> {
+    let binding = format!("\x1b[{}d", row + 1);
+    stdout.write(binding.as_bytes())?;
+    stdout.flush()
+}
+
+pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result<(), Error> {
+    let binding = format!("\x1b[{};{}H", row + 1, col + 1);
+    stdout.write(binding.as_bytes())?;
+    stdout.flush()
+}
+
+pub fn move_cursor(
+    stdout: &mut impl Write,
+    col: Option<u32>,
+    row: Option<u32>,
+) -> Result<(), Error> {
+    match (col, row) {
+        (Some(x), None) => move_cursor_column(stdout, x),
+        (None, Some(y)) => move_cursor_row(stdout, y),
+        (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
+        (None, None) => Ok(()),
+    }
 }
 
 pub fn restore_cursor(stdout: &mut impl Write) -> Result<(), Error> {
