@@ -2,6 +2,7 @@ use clap::Parser;
 
 mod options;
 mod previewer;
+mod result;
 mod utils;
 
 fn main() {
@@ -10,6 +11,6 @@ fn main() {
 
     match previewer::preview(&mut stdout, &options) {
         Ok(()) => {}
-        Err(why) => eprintln!("Error: {why}"),
+        Err(err) => eprintln!("{err}"),
     };
 }

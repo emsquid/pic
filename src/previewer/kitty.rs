@@ -1,28 +1,26 @@
 use crate::options::{Action, Options};
+use crate::result::Result;
 use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
-use std::io::{Error, Write};
+use std::io::Write;
 
 const KITTY_PREFIX: &str = "pic-tty-graphics-protocol.";
 const PROTOCOL_START: &str = "\x1b_G";
 const PROTOCOL_END: &str = "\x1b\\";
 
-fn send_graphics_command(
-    stdout: &mut impl Write,
-    command: &str,
-    payload: Option<&str>,
-) -> Result<(), Error> {
+fn send_graphics_command(stdout: &mut impl Write, command: &str, payload: Option<&str>) -> Result {
     let data = general_purpose::STANDARD.encode(payload.unwrap_or(""));
 
     stdout.write_all(format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}").as_bytes())?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-fn clear(stdout: &mut impl Write) -> Result<(), Error> {
+fn clear(stdout: &mut impl Write) -> Result {
     send_graphics_command(stdout, "a=d,d=a", None)
 }
 
-fn load(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+fn load(stdout: &mut impl Write, options: &Options) -> Result {
     let image = image::open(&options.path).unwrap().to_rgba8();
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     save_in_tmp_file(image.as_raw(), &mut tempfile)?;
@@ -42,7 +40,7 @@ fn load(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     send_graphics_command(stdout, &command, pathbuf.to_str())
 }
 
-fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     let (command, payload) = match options.id {
         Some(id) => {
@@ -76,15 +74,16 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     send_graphics_command(stdout, &command, payload)?;
 
     stdout.write_all(b"\n")?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-fn load_and_display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+fn load_and_display(stdout: &mut impl Write, options: &Options) -> Result {
     load(stdout, options)?;
     display(stdout, options)
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     match options.action {
         Action::Load => load(stdout, options),
         Action::Display => display(stdout, options),

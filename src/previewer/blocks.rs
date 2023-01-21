@@ -1,22 +1,19 @@
 use crate::options::{Action, Options};
+use crate::result::Result;
 use crate::utils::{
     convert_to_ansi, fit_in_bounds, move_cursor, pixel_is_transparent, resize, TermSize,
 };
-use std::io::{Error, Write};
+use std::io::Write;
 
 const TOP_BLOCK: &str = "\u{2580}";
 const BOTTOM_BLOCK: &str = "\u{2584}";
 
-fn write_color_block(
-    stdout: &mut impl Write,
-    block: &str,
-    ansi_bg: &str,
-    ansi_fg: &str,
-) -> Result<(), Error> {
-    stdout.write_all(format!("{ansi_bg}{ansi_fg}{block}\x1b[m").as_bytes())
+fn write_color_block(stdout: &mut impl Write, block: &str, ansi_bg: &str, ansi_fg: &str) -> Result {
+    stdout.write_all(format!("{ansi_bg}{ansi_fg}{block}\x1b[m").as_bytes())?;
+    Ok(())
 }
 
-fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let image = image::open(&options.path).unwrap();
     let (width, height) = (image.width(), image.height());
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
@@ -64,15 +61,16 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
         if !is_bg {
             stdout.write_all(b"\n")?;
         } else {
-            // if not bg, get ready for writing next line
+            // if bg, get ready for writing next line
             move_cursor(stdout, options.x, options.y)?;
         };
     }
 
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
+pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     match options.action {
         Action::Display => display(stdout, options),
         _ => Ok(eprintln!("Error: these actions aren't implemented for blocks method: load/load-and-display/clear

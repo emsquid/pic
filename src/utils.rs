@@ -1,3 +1,4 @@
+use crate::result::Result;
 use image::DynamicImage;
 use std::{
     fs::File,
@@ -5,34 +6,34 @@ use std::{
     path::PathBuf,
 };
 
-pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
-    stdout.write_all(b"\x1b[s")?;
-    stdout.flush()
+pub fn save_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write(b"\x1b[s")?;
+    stdout.flush()?;
+    Ok(())
 }
 
-pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result<(), Error> {
+pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
     let binding = format!("\x1b[{}G", col + 1);
     stdout.write_all(binding.as_bytes())?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result<(), Error> {
+pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result {
     let binding = format!("\x1b[{}d", row + 1);
     stdout.write_all(binding.as_bytes())?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result<(), Error> {
+pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result {
     let binding = format!("\x1b[{};{}H", row + 1, col + 1);
     stdout.write_all(binding.as_bytes())?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
-pub fn move_cursor(
-    stdout: &mut impl Write,
-    col: Option<u32>,
-    row: Option<u32>,
-) -> Result<(), Error> {
+pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) -> Result {
     match (col, row) {
         (Some(x), None) => move_cursor_column(stdout, x),
         (None, Some(y)) => move_cursor_row(stdout, y),
@@ -41,9 +42,10 @@ pub fn move_cursor(
     }
 }
 
-pub fn restore_cursor(stdout: &mut impl Write) -> Result<(), Error> {
+pub fn restore_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[u")?;
-    stdout.flush()
+    stdout.flush()?;
+    Ok(())
 }
 
 #[derive(Clone, Default, Debug)]
@@ -75,7 +77,7 @@ impl TermSize {
         Some((self.width / self.cols, self.height / self.rows))
     }
 
-    pub fn from_ioctl() -> Result<Self, Error> {
+    pub fn from_ioctl() -> Result<Self> {
         // TODO: find a way to make that safe
         unsafe {
             let mut ws = libc::winsize {
@@ -93,7 +95,7 @@ impl TermSize {
                     ws.ws_ypixel,
                 ))
             } else {
-                Err(Error::last_os_error())
+                Err(Error::last_os_error().into())
             }
         }
     }
@@ -111,7 +113,6 @@ pub fn fit_in_bounds(
         Some((0, 0)) | None => (10, 20),
         Some((c, r)) => (c, r),
     };
-
     let cols = cols.unwrap_or(term_size.cols);
     let rows = rows.unwrap_or(term_size.rows);
 
@@ -146,7 +147,7 @@ pub fn convert_to_ansi(rgb: [u8; 4], bg: bool) -> String {
     }
 }
 
-pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), Error> {
+pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
         .tempfile_in("/tmp/")?
@@ -155,7 +156,8 @@ pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), Error> {
     Ok((tempfile, pathbuf))
 }
 
-pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result<(), Error> {
+pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
     file.write_all(buffer)?;
-    file.flush()
+    file.flush()?;
+    Ok(())
 }
