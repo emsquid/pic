@@ -10,6 +10,6 @@ fn main() {
 
     match previewer::preview(&mut stdout, &options) {
         Ok(()) => {}
-        Err(why) => eprintln!("Error: {}", why),
+        Err(why) => eprintln!("Error: {why}"),
     };
 }

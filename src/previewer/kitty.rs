@@ -14,7 +14,7 @@ fn send_graphics_command(
 ) -> Result<(), Error> {
     let data = general_purpose::STANDARD.encode(payload.unwrap_or(""));
 
-    stdout.write(format!("{}{};{}{}", PROTOCOL_START, command, data, PROTOCOL_END).as_bytes())?;
+    stdout.write_all(format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}").as_bytes())?;
     stdout.flush()
 }
 
@@ -50,9 +50,10 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             let (width, height) = (size.width as u32, size.height as u32);
 
             let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
+                    .unwrap_or_default();
 
-            (format!("a=p,c={},r={},i={},q=2", cols, rows, id), None)
+            (format!("a=p,c={cols},r={rows},i={id},q=2"), None)
         }
         None => {
             let image = image::open(&options.path).unwrap().to_rgba8();
@@ -61,13 +62,11 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
             drop(tempfile);
 
             let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
+                    .unwrap_or_default();
 
             (
-                format!(
-                    "a=T,t=t,f=32,s={},v={},c={},r={},q=2",
-                    width, height, cols, rows
-                ),
+                format!("a=T,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",),
                 pathbuf.to_str(),
             )
         }
@@ -76,7 +75,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     move_cursor(stdout, options.x, options.y)?;
     send_graphics_command(stdout, &command, payload)?;
 
-    stdout.write(b"\n")?;
+    stdout.write_all(b"\n")?;
     stdout.flush()
 }
 
