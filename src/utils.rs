@@ -6,25 +6,25 @@ use std::{
 };
 
 pub fn save_cursor(stdout: &mut impl Write) -> Result<(), Error> {
-    stdout.write(b"\x1b[s")?;
+    stdout.write_all(b"\x1b[s")?;
     stdout.flush()
 }
 
 pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result<(), Error> {
     let binding = format!("\x1b[{}G", col + 1);
-    stdout.write(binding.as_bytes())?;
+    stdout.write_all(binding.as_bytes())?;
     stdout.flush()
 }
 
 pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result<(), Error> {
     let binding = format!("\x1b[{}d", row + 1);
-    stdout.write(binding.as_bytes())?;
+    stdout.write_all(binding.as_bytes())?;
     stdout.flush()
 }
 
 pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result<(), Error> {
     let binding = format!("\x1b[{};{}H", row + 1, col + 1);
-    stdout.write(binding.as_bytes())?;
+    stdout.write_all(binding.as_bytes())?;
     stdout.flush()
 }
 
@@ -42,32 +42,61 @@ pub fn move_cursor(
 }
 
 pub fn restore_cursor(stdout: &mut impl Write) -> Result<(), Error> {
-    stdout.write(b"\x1b[u")?;
+    stdout.write_all(b"\x1b[u")?;
     stdout.flush()
 }
 
-pub fn get_term_size() -> (u32, u32, u32, u32) {
-    // TODO: find a way to make that safe
-    unsafe {
-        let mut ws = libc::winsize {
-            ws_row: 0,
-            ws_col: 0,
-            ws_xpixel: 0,
-            ws_ypixel: 0,
-        };
-        libc::ioctl(0, libc::TIOCGWINSZ, &mut ws);
-        (
-            ws.ws_row as u32,
-            ws.ws_col as u32,
-            ws.ws_xpixel as u32,
-            ws.ws_ypixel as u32,
-        )
-    }
+#[derive(Clone, Default, Debug)]
+pub struct TermSize {
+    /// The amount of visible rows in the pty
+    pub(crate) rows: u32,
+    /// The amount of visible columns in the pty
+    pub(crate) cols: u32,
+    /// The width of the view in pixels
+    pub(crate) width: u32,
+    /// The height of the view in pixels
+    pub(crate) height: u32,
 }
 
-pub fn get_cell_size() -> (u32, u32) {
-    let (rows, cols, xpixel, ypixel) = get_term_size();
-    return (xpixel / cols, ypixel / rows);
+impl TermSize {
+    pub fn new(rows: u16, cols: u16, width: u16, height: u16) -> Self {
+        Self {
+            rows: rows as u32,
+            cols: cols as u32,
+            width: width as u32,
+            height: height as u32,
+        }
+    }
+
+    pub fn get_cell_size(&self) -> Option<(u32, u32)> {
+        if self.cols == 0 || self.rows == 0 {
+            return None;
+        }
+        Some((self.width / self.cols, self.height / self.rows))
+    }
+
+    pub fn from_ioctl() -> Result<Self, Error> {
+        // TODO: find a way to make that safe
+        unsafe {
+            let mut ws = libc::winsize {
+                ws_row: 0,
+                ws_col: 0,
+                ws_xpixel: 0,
+                ws_ypixel: 0,
+            };
+            let ret = libc::ioctl(0, libc::TIOCGWINSZ, &mut ws);
+            if ret == 0 {
+                Ok(TermSize::new(
+                    ws.ws_row,
+                    ws.ws_col,
+                    ws.ws_xpixel,
+                    ws.ws_ypixel,
+                ))
+            } else {
+                Err(Error::last_os_error())
+            }
+        }
+    }
 }
 
 pub fn fit_in_bounds(
@@ -76,31 +105,29 @@ pub fn fit_in_bounds(
     cols: Option<u32>,
     rows: Option<u32>,
     upscale: bool,
-) -> (u32, u32) {
-    let term_size = get_term_size();
-    let (col_size, row_size) = match get_cell_size() {
-        (0, 0) => (10, 20),
-        (c, r) => (c, r),
+) -> Option<(u32, u32)> {
+    let term_size = TermSize::from_ioctl().ok()?;
+    let (col_size, row_size) = match term_size.get_cell_size() {
+        Some((0, 0)) | None => (10, 20),
+        Some((c, r)) => (c, r),
     };
-    let (cols, rows) = match (cols, rows) {
-        (None, None) => (term_size.1, term_size.0),
-        (Some(c), None) => (c, term_size.0),
-        (None, Some(r)) => (term_size.1, r),
-        (Some(c), Some(r)) => (c, r),
-    };
+
+    let cols = cols.unwrap_or(term_size.cols);
+    let rows = rows.unwrap_or(term_size.rows);
+
     let (bound_width, bound_height) = (cols * col_size, rows * row_size);
 
     if !upscale && width < bound_width && height < bound_height {
-        return (width / col_size, height / row_size);
+        return Some((width / col_size, height / row_size));
     }
 
     let w_ratio = width * bound_height;
     let h_ratio = bound_width * height;
 
     if w_ratio >= h_ratio {
-        (cols, (height * bound_width) / (width * row_size))
+        Some((cols, (height * bound_width) / (width * row_size)))
     } else {
-        ((width * bound_height) / (height * col_size), rows)
+        Some(((width * bound_height) / (height * col_size), rows))
     }
 }
 
@@ -119,7 +146,7 @@ pub fn convert_to_ansi(rgb: [u8; 4], bg: bool) -> String {
     }
 }
 
-pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), std::io::Error> {
+pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), Error> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
         .tempfile_in("/tmp/")?
@@ -129,6 +156,6 @@ pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf), std::io::Error> {
 }
 
 pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result<(), Error> {
-    file.write(buffer)?;
+    file.write_all(buffer)?;
     file.flush()
 }

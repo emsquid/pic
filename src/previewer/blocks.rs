@@ -1,6 +1,6 @@
 use crate::options::{Action, Options};
 use crate::utils::{
-    convert_to_ansi, fit_in_bounds, get_term_size, move_cursor, pixel_is_transparent, resize,
+    convert_to_ansi, fit_in_bounds, move_cursor, pixel_is_transparent, resize, TermSize,
 };
 use std::io::{Error, Write};
 
@@ -13,14 +13,15 @@ fn write_color_block(
     ansi_bg: &str,
     ansi_fg: &str,
 ) -> Result<(), Error> {
-    stdout.write_all(format!("{}{}{}\x1b[m", ansi_bg, ansi_fg, block).as_bytes())
+    stdout.write_all(format!("{ansi_bg}{ansi_fg}{block}\x1b[m").as_bytes())
 }
 
 fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     let image = image::open(&options.path).unwrap();
     let (width, height) = (image.width(), image.height());
-    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
-    let term_size = get_term_size();
+    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
+        .unwrap_or_default();
+    let term_size = TermSize::from_ioctl()?;
     let rgba = resize(&image, cols, rows * 2).to_rgba8();
 
     let mut backgrounds: Vec<[u8; 4]> = vec![[0; 4]; cols as usize];
@@ -29,7 +30,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
         let is_bg = r % 2 == 0;
 
         for (c, pixel) in row.enumerate() {
-            let overflow = (c as u32) + options.x.unwrap_or(0) >= term_size.1;
+            let overflow = (c as u32) + options.x.unwrap_or(0) >= term_size.cols;
 
             if !overflow {
                 let rgb = pixel.2 .0;
@@ -61,7 +62,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
         }
 
         if !is_bg {
-            stdout.write(b"\n")?;
+            stdout.write_all(b"\n")?;
         } else {
             // if not bg, get ready for writing next line
             move_cursor(stdout, options.x, options.y)?;

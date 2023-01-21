@@ -1,5 +1,5 @@
 use crate::options::{Action, Options};
-use crate::utils::{fit_in_bounds, get_cell_size, move_cursor};
+use crate::utils::{fit_in_bounds, move_cursor, TermSize};
 use sixel_rs::encoder::Encoder;
 use sixel_rs::optflags::{EncodePolicy, ResampleMethod, SizeSpecification::Pixel};
 use std::io::{Error, Write};
@@ -7,10 +7,13 @@ use std::io::{Error, Write};
 pub fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> {
     let size = imagesize::size(&options.path).unwrap();
     let (width, height) = (size.width as u32, size.height as u32);
-    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale);
-    let (col_size, row_size) = match get_cell_size() {
-        (0, 0) => (15, 30),
-        (c, r) => (c, r),
+    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
+        .unwrap_or_default();
+
+    let term_size = TermSize::from_ioctl()?;
+    let (col_size, row_size) = match term_size.get_cell_size() {
+        Some((0, 0)) | None => (15, 30),
+        Some((c, r)) => (c, r),
     };
 
     let encoder = Encoder::new().unwrap();
@@ -23,7 +26,7 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result<(), Error> 
     move_cursor(stdout, options.x, options.y)?;
     encoder.encode_file(&options.path).unwrap();
 
-    stdout.write(b"\n")?;
+    stdout.write_all(b"\n")?;
     stdout.flush()
 }
 
