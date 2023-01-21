@@ -10,11 +10,11 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Error::Io(e) => write!(f, "IO error: {}", e),
-            Error::Image(e) => write!(f, "Image error: {}", e),
-            Error::Sixel(e) => write!(f, "Sixel error: {:?}", e),
-            Error::ImageSize(e) => write!(f, "Image size error: {}", e),
-            Error::Tempfile(e) => write!(f, "Tempfile error: {}", e),
+            Error::Io(err) => write!(f, "IO error: {}", err),
+            Error::Image(err) => write!(f, "Image error: {}", err),
+            Error::Sixel(err) => write!(f, "Sixel error: {:?}", err),
+            Error::ImageSize(err) => write!(f, "Image size error: {}", err),
+            Error::Tempfile(err) => write!(f, "Tempfile error: {}", err),
         }
     }
 }

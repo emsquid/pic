@@ -21,7 +21,8 @@ fn clear(stdout: &mut impl Write) -> Result {
 }
 
 fn load(stdout: &mut impl Write, options: &Options) -> Result {
-    let image = image::open(&options.path).unwrap().to_rgba8();
+    let image = image::open(&options.path)?.to_rgba8();
+    let (width, height) = image.dimensions();
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     save_in_tmp_file(image.as_raw(), &mut tempfile)?;
 
@@ -30,12 +31,7 @@ fn load(stdout: &mut impl Write, options: &Options) -> Result {
         None => panic!("Error: Load: id is required"),
     };
 
-    let command = format!(
-        "a=t,t=t,f=32,s={},v={},i={},q=2",
-        image.width(),
-        image.height(),
-        id
-    );
+    let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
 
     send_graphics_command(stdout, &command, pathbuf.to_str())
 }
@@ -44,7 +40,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     let (command, payload) = match options.id {
         Some(id) => {
-            let size = imagesize::size(&options.path).unwrap();
+            let size = imagesize::size(&options.path)?;
             let (width, height) = (size.width as u32, size.height as u32);
 
             let (cols, rows) =
@@ -54,7 +50,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
             (format!("a=p,c={cols},r={rows},i={id},q=2"), None)
         }
         None => {
-            let image = image::open(&options.path).unwrap().to_rgba8();
+            let image = image::open(&options.path)?.to_rgba8();
             let (width, height) = image.dimensions();
             save_in_tmp_file(image.as_raw(), &mut tempfile)?;
             drop(tempfile);

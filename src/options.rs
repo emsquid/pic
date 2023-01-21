@@ -17,7 +17,7 @@ pub enum Action {
 }
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about)]
 pub struct Options {
     /// Previewing method to use
     pub method: Method,

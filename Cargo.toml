@@ -3,7 +3,7 @@ name = "pic"
 version = "0.1.1"
 edition = "2021"
 authors = ["Emanuel <emanuel.morille@proton.me>"]
-description = "Preview Images in a CLI."
+description = "Preview Images in CLI."
 repository = "https://github.com/emsquid/pic"
 readme = "README.md"
 

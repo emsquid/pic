@@ -6,8 +6,29 @@ use std::{
     path::PathBuf,
 };
 
+pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
+    let (tempfile, pathbuf) = tempfile::Builder::new()
+        .prefix(prefix)
+        .tempfile_in("/tmp/")?
+        .keep()?;
+
+    Ok((tempfile, pathbuf))
+}
+
+pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
+    file.write_all(buffer)?;
+    file.flush()?;
+    Ok(())
+}
+
 pub fn save_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write(b"\x1b[s")?;
+    stdout.write_all(b"\x1b[s")?;
+    stdout.flush()?;
+    Ok(())
+}
+
+pub fn restore_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[u")?;
     stdout.flush()?;
     Ok(())
 }
@@ -40,12 +61,6 @@ pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) 
         (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
         (None, None) => Ok(()),
     }
-}
-
-pub fn restore_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write_all(b"\x1b[u")?;
-    stdout.flush()?;
-    Ok(())
 }
 
 #[derive(Clone, Default, Debug)]
@@ -110,7 +125,7 @@ pub fn fit_in_bounds(
 ) -> Option<(u32, u32)> {
     let term_size = TermSize::from_ioctl().ok()?;
     let (col_size, row_size) = match term_size.get_cell_size() {
-        Some((0, 0)) | None => (10, 20),
+        Some((0, 0)) | None => (15, 30),
         Some((c, r)) => (c, r),
     };
     let cols = cols.unwrap_or(term_size.cols);
@@ -140,24 +155,9 @@ pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
     rgb[3] < 10
 }
 
-pub fn convert_to_ansi(rgb: [u8; 4], bg: bool) -> String {
+pub fn get_ansi(rgb: [u8; 4], bg: bool) -> String {
     match bg {
         false => format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
         true => format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
     }
-}
-
-pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
-    let (tempfile, pathbuf) = tempfile::Builder::new()
-        .prefix(prefix)
-        .tempfile_in("/tmp/")?
-        .keep()?;
-
-    Ok((tempfile, pathbuf))
-}
-
-pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
-    file.write_all(buffer)?;
-    file.flush()?;
-    Ok(())
 }
