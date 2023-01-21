@@ -16,8 +16,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let image = image::open(&options.path)?;
     let (width, height) = (image.width(), image.height());
     let term_size = TermSize::from_ioctl()?;
-    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
-        .unwrap_or_default();
+    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
     let rgba = resize(&image, cols, rows * 2).to_rgba8();
 
     let mut backgrounds = vec![[0; 4]; cols as usize];

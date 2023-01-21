@@ -6,10 +6,9 @@ use sixel_rs::optflags::{EncodePolicy, ResampleMethod, SizeSpecification::Pixel}
 use std::io::Write;
 
 pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
-    let size = imagesize::size(&options.path)?;
-    let (width, height) = (size.width as u32, size.height as u32);
-    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
-        .unwrap_or_default();
+    let image_size = imagesize::size(&options.path)?;
+    let (width, height) = (image_size.width as u32, image_size.height as u32);
+    let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
     let term_size = TermSize::from_ioctl()?;
     let (col_size, row_size) = match term_size.get_cell_size() {
@@ -27,7 +26,6 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
     move_cursor(stdout, options.x, options.y)?;
     encoder.encode_file(&options.path)?;
 
-    stdout.write_all(b"\n")?;
     stdout.flush()?;
     Ok(())
 }

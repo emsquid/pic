@@ -122,8 +122,8 @@ pub fn fit_in_bounds(
     cols: Option<u32>,
     rows: Option<u32>,
     upscale: bool,
-) -> Option<(u32, u32)> {
-    let term_size = TermSize::from_ioctl().ok()?;
+) -> Result<(u32, u32)> {
+    let term_size = TermSize::from_ioctl()?;
     let (col_size, row_size) = match term_size.get_cell_size() {
         Some((0, 0)) | None => (15, 30),
         Some((c, r)) => (c, r),
@@ -134,16 +134,16 @@ pub fn fit_in_bounds(
     let (bound_width, bound_height) = (cols * col_size, rows * row_size);
 
     if !upscale && width < bound_width && height < bound_height {
-        return Some((width / col_size, height / row_size));
+        return Ok((width / col_size, height / row_size));
     }
 
     let w_ratio = width * bound_height;
     let h_ratio = bound_width * height;
 
     if w_ratio >= h_ratio {
-        Some((cols, (height * bound_width) / (width * row_size)))
+        Ok((cols, (height * bound_width) / (width * row_size)))
     } else {
-        Some(((width * bound_height) / (height * col_size), rows))
+        Ok(((width * bound_height) / (height * col_size), rows))
     }
 }
 

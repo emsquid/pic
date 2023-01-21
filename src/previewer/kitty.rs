@@ -40,12 +40,11 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     let (command, payload) = match options.id {
         Some(id) => {
-            let size = imagesize::size(&options.path)?;
-            let (width, height) = (size.width as u32, size.height as u32);
+            let image_size = imagesize::size(&options.path)?;
+            let (width, height) = (image_size.width as u32, image_size.height as u32);
 
             let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
-                    .unwrap_or_default();
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
             (format!("a=p,c={cols},r={rows},i={id},q=2"), None)
         }
@@ -56,8 +55,7 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
             drop(tempfile);
 
             let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
-                    .unwrap_or_default();
+                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
             (
                 format!("a=T,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",),
