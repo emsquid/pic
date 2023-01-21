@@ -5,6 +5,7 @@ use std::path::PathBuf;
 pub enum Method {
     Kitty,
     Sixel,
+    Iterm,
     Blocks,
 }
 
