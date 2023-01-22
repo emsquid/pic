@@ -1,9 +1,8 @@
 use crate::options::{Action, Options};
 use crate::result::{Error, Result};
 use crate::utils::{
-    ansi_indexed, ansi_rgb, fit_in_bounds, move_cursor, pixel_is_transparent, resize, TermSize,
+    ansi_color, fit_in_bounds, move_cursor, pixel_is_transparent, resize, TermSize,
 };
-use std::env;
 use std::io::Write;
 
 const ANSI_CLEAR: &str = "\x1b[m";
@@ -69,14 +68,6 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
 
     stdout.flush()?;
     Ok(())
-}
-
-fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
-    let colorterm = env::var("COLORTERM").unwrap_or_default();
-    match colorterm.as_str() {
-        "truecolor" | "24bit" => ansi_rgb(rgb, bg),
-        _ => ansi_indexed(rgb, bg),
-    }
 }
 
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {

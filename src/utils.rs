@@ -2,6 +2,7 @@ use crate::result::Result;
 use ansi_colours::ansi256_from_rgb;
 use image::DynamicImage;
 use std::{
+    env,
     fs::File,
     io::{Error, Write},
     path::PathBuf,
@@ -174,5 +175,13 @@ pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
     match bg {
         false => format!("\x1b[38;5;{}m", index),
         true => format!("\x1b[48;5;{}m", index),
+    }
+}
+
+pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
+    let colorterm = env::var("COLORTERM").unwrap_or_default();
+    match colorterm.as_str() {
+        "truecolor" | "24bit" => ansi_rgb(rgb, bg),
+        _ => ansi_indexed(rgb, bg),
     }
 }
