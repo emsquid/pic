@@ -161,7 +161,7 @@ pub fn resize(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
 }
 
 pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
-    rgb[3] < 10
+    rgb[3] < 25
 }
 
 pub fn ansi_rgb(rgb: [u8; 4], bg: bool) -> String {

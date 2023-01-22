@@ -11,9 +11,12 @@ pub enum Method {
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Action {
-    Load,
     Display,
+    // (kitty only)
+    Load,
+    // (kitty only)
     LoadAndDisplay,
+    // (kitty only)
     Clear,
 }
 
@@ -27,7 +30,7 @@ pub struct Options {
     /// Path to the image to preview
     pub path: PathBuf,
 
-    /// id to use
+    /// id to use (kitty only)
     #[arg(short, long)]
     pub id: Option<u32>,
     /// x position (0 is left)

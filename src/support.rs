@@ -20,7 +20,7 @@ const ITERM_PROGRAMS: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 const ITERM_LCS: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 
 fn find_match(list: &[&str], var: &str) -> bool {
-    var != "" && list.iter().any(|s| var.contains(s))
+    list.iter().any(|s| var.contains(s))
 }
 
 fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> Result<bool> {
@@ -28,7 +28,7 @@ fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> R
     let command = [subcommand.unwrap_or_default(), b"\x1b[c"].concat();
     stdout.write_all(&command)?;
     stdout.flush()?;
-
+    // What if the terminal doesn't answer ?
     let mut response = String::new();
     while let Ok(key) = stdout.read_key() {
         if let Key::Char(chr) = key {

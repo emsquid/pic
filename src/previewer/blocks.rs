@@ -60,7 +60,6 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
         if !is_bg {
             stdout.write_all(b"\n")?;
         } else {
-            // if bg, get ready for writing next line (only need to move col)
             move_cursor(stdout, options.x, None)?;
         };
     }
