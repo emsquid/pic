@@ -48,7 +48,7 @@ pub struct Options {
     /// Upscale image if needed
     #[arg(short, long, default_value_t = false)]
     pub upscale: bool,
-    /// Do not check for method support
+    /// Do not check for protocol support
     #[arg(short, long, default_value_t = false)]
     pub force: bool,
 }

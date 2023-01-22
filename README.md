@@ -56,7 +56,7 @@ Options:
   -c, --cols <COLS>  Number of cols to fit the preview in
   -r, --rows <ROWS>  Number of rows to fit the preview in
   -u, --upscale      Upscale image if needed
-  -f, --force        Do not check for method support
+  -f, --force        Do not check for protocol support
   -h, --help         Print help
   -V, --version      Print version
 ```
