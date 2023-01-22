@@ -17,7 +17,7 @@ const ITERM_PROGRAM: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 const ITERM_LC: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 
 fn find_match(list: &[&str], var: &str) -> bool {
-    list.iter().any(|s| var.contains(s))
+    var != "" && list.iter().any(|s| var.contains(s))
 }
 
 fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> Result<bool> {
