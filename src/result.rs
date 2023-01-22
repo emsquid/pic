@@ -37,8 +37,8 @@ impl From<image::ImageError> for Error {
 }
 
 impl From<sixel_rs::status::Error> for Error {
-    fn from(e: sixel_rs::status::Error) -> Self {
-        Error::Sixel(e)
+    fn from(err: sixel_rs::status::Error) -> Self {
+        Error::Sixel(err)
     }
 }
 

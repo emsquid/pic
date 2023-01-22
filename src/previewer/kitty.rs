@@ -4,20 +4,23 @@ use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
 use std::io::Write;
 
-const KITTY_PREFIX: &str = "pic-tty-graphics-protocol.";
+const KITTY_PREFIX: &str = "pic.tty-graphics-protocol.";
 const PROTOCOL_START: &str = "\x1b_G";
 const PROTOCOL_END: &str = "\x1b\\";
 
 fn send_graphics_command(stdout: &mut impl Write, command: &str, payload: Option<&str>) -> Result {
-    let data = general_purpose::STANDARD.encode(payload.unwrap_or(""));
+    let data = general_purpose::STANDARD.encode(payload.unwrap_or_default());
 
     stdout.write_all(format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}").as_bytes())?;
     stdout.flush()?;
     Ok(())
 }
 
-fn clear(stdout: &mut impl Write) -> Result {
-    send_graphics_command(stdout, "a=d,d=a", None)
+fn clear(stdout: &mut impl Write, options: &Options) -> Result {
+    match options.id {
+        Some(id) => send_graphics_command(stdout, &format!("a=d,d=i,i={id}"), None),
+        None => send_graphics_command(stdout, "a=d,d=a", None),
+    }
 }
 
 fn load(stdout: &mut impl Write, options: &Options) -> Result {
@@ -28,7 +31,7 @@ fn load(stdout: &mut impl Write, options: &Options) -> Result {
 
     let id = match options.id {
         Some(id) => id,
-        None => panic!("Error: Load: id is required"),
+        None => panic!("Load error: id is required"),
     };
 
     let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
@@ -82,6 +85,6 @@ pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
         Action::Load => load(stdout, options),
         Action::Display => display(stdout, options),
         Action::LoadAndDisplay => load_and_display(stdout, options),
-        Action::Clear => clear(stdout),
+        Action::Clear => clear(stdout, options),
     }
 }

@@ -11,6 +11,7 @@ const BOTTOM_BLOCK: &str = "\u{2584}";
 
 fn write_color_block(stdout: &mut impl Write, block: &str, ansi_bg: &str, ansi_fg: &str) -> Result {
     stdout.write_all(format!("{ansi_bg}{ansi_fg}{block}{ANSI_CLEAR}").as_bytes())?;
+    stdout.flush()?;
     Ok(())
 }
 
@@ -30,29 +31,27 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
             let overflow = (c as u32) + options.x.unwrap_or(0) >= term_size.cols;
 
             if !overflow {
-                let rgb = pixel.2 .0;
+                if is_bg {
+                    backgrounds[c] = pixel.2 .0;
+                } else {
+                    let rgb_fg = pixel.2 .0;
+                    let rgb_bg = backgrounds[c];
 
-                match (is_bg, pixel_is_transparent(rgb)) {
-                    (true, _) => {
-                        backgrounds[c] = rgb;
-                    }
-                    (false, true) => {
-                        if pixel_is_transparent(backgrounds[c]) {
-                            write_color_block(stdout, " ", "", "")?;
-                        } else {
-                            let ansi_fg = ansi_color(backgrounds[c], false);
-                            write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?;
-                        };
-                    }
-                    (false, false) => {
-                        if pixel_is_transparent(backgrounds[c]) {
-                            let ansi_fg = ansi_color(rgb, false);
+                    match (pixel_is_transparent(rgb_fg), pixel_is_transparent(rgb_bg)) {
+                        (true, true) => write_color_block(stdout, " ", "", "")?,
+                        (true, false) => {
+                            let ansi_fg = ansi_color(rgb_bg, false);
+                            write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?
+                        }
+                        (false, true) => {
+                            let ansi_fg = ansi_color(rgb_fg, false);
                             write_color_block(stdout, BOTTOM_BLOCK, "", &ansi_fg)?;
-                        } else {
-                            let ansi_bg = ansi_color(backgrounds[c], true);
-                            let ansi_fg = ansi_color(rgb, false);
+                        }
+                        (false, false) => {
+                            let ansi_bg = ansi_color(rgb_bg, true);
+                            let ansi_fg = ansi_color(rgb_fg, false);
                             write_color_block(stdout, BOTTOM_BLOCK, &ansi_bg, &ansi_fg)?;
-                        };
+                        }
                     }
                 }
             }
@@ -66,7 +65,6 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
         };
     }
 
-    stdout.flush()?;
     Ok(())
 }
 

@@ -15,13 +15,12 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
     let data = general_purpose::STANDARD.encode(buffer);
 
+    let command = format!(
+        "\x1b]1337;File=width={cols};height={rows};inline=1;preserveAspectRatio=1:{data}\n",
+    );
+
     move_cursor(stdout, options.x, options.y)?;
-    stdout.write_all(
-        format!(
-            "\x1b]1337;File=width={cols};height={rows};inline=1;preserveAspectRatio=1:{data}\x07\n",
-        )
-        .as_bytes(),
-    )?;
+    stdout.write_all(command.as_bytes())?;
 
     stdout.flush()?;
     Ok(())
