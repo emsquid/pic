@@ -1,8 +1,10 @@
 use crate::options::{Action, Options};
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::utils::{fit_in_bounds, move_cursor, TermSize};
+use console::{Key, Term};
 use sixel_rs::encoder::Encoder;
 use sixel_rs::optflags::{EncodePolicy, ResampleMethod, SizeSpecification::Pixel};
+use std::env;
 use std::io::Write;
 
 pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
@@ -30,10 +32,45 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
     Ok(())
 }
 
+fn check_term() -> bool {
+    let term = env::var("TERM").unwrap_or_default();
+    match term.as_str() {
+        "xterm" | "xterm-256color" | "yaft-256color" | "st-256color" | "foot" | "foot-extra"
+        | "mlterm" => true,
+        _ => false,
+    }
+}
+
+fn check_attrs() -> Result<bool> {
+    let mut stdout = Term::stdout();
+    stdout.write(b"\x1b[c")?;
+    stdout.flush()?;
+
+    let mut response = String::new();
+    while let Ok(key) = stdout.read_key() {
+        if let Key::Char(chr) = key {
+            response.push(chr);
+            if chr == 'c' {
+                break;
+            }
+        }
+    }
+
+    Ok(response.contains(";4;") || response.contains(";4c"))
+}
+
+fn check_support() -> bool {
+    check_term() && check_attrs().unwrap_or(false)
+}
+
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Display => display(stdout, options),
-        _ => Ok(eprintln!("Error: these actions aren't implemented for sixel method: load/load-and-display/clear
-                          \n\nUsage: pic blocks display <PATH>\n\nFor more information, try '--help'"))
+    match options.force || check_support() {
+        true => match options.action {
+            Action::Display => display(stdout, options),
+            _ => Err(Error::ActionSupport("Sixel doesn't support load/clear")),
+        },
+        false => Err(Error::MethodSupport(
+            "Your terminal doesn't support Sixel protocol",
+        )),
     }
 }

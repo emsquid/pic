@@ -1,7 +1,8 @@
 use crate::options::{Action, Options};
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
+use std::env;
 use std::io::Write;
 
 const KITTY_PREFIX: &str = "pic-tty-graphics-protocol.";
@@ -77,11 +78,44 @@ fn load_and_display(stdout: &mut impl Write, options: &Options) -> Result {
     display(stdout, options)
 }
 
+fn check_term() -> bool {
+    let term = env::var("TERM").unwrap_or_default();
+    let program = env::var("TERM_PROGRAM").unwrap_or_default();
+    term.contains("kitty") || program.contains("WezTerm")
+}
+
+fn check_attrs() -> Result<bool> {
+    let mut stdout = console::Term::stdout();
+    stdout.write_all(b"\x1b_Gi=31,s=1,v=1,a=q,t=d,f=24;AAAA\x1b\\\x1b[c")?;
+    stdout.flush()?;
+
+    let mut response = String::new();
+    while let Ok(key) = stdout.read_key() {
+        if let console::Key::Char(chr) = key {
+            response.push(chr);
+            if chr == 'c' {
+                break;
+            }
+        }
+    }
+
+    Ok(response.contains("OK") && response.contains("c"))
+}
+
+fn check_support() -> bool {
+    check_term() && check_attrs().unwrap_or(false)
+}
+
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Load => load(stdout, options),
-        Action::Display => display(stdout, options),
-        Action::LoadAndDisplay => load_and_display(stdout, options),
-        Action::Clear => clear(stdout),
+    match options.force || check_support() {
+        true => match options.action {
+            Action::Load => load(stdout, options),
+            Action::Display => display(stdout, options),
+            Action::LoadAndDisplay => load_and_display(stdout, options),
+            Action::Clear => clear(stdout),
+        },
+        false => Err(Error::MethodSupport(
+            "Your terminal doesn't support Kitty graphics protocol",
+        )),
     }
 }

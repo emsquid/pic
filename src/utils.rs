@@ -1,4 +1,5 @@
 use crate::result::Result;
+use ansi_colours::ansi256_from_rgb;
 use image::DynamicImage;
 use std::{
     fs::File,
@@ -141,9 +142,15 @@ pub fn fit_in_bounds(
     let h_ratio = bound_width * height;
 
     if w_ratio >= h_ratio {
-        Ok((cols, (height * bound_width) / (width * row_size)))
+        Ok((
+            cols,
+            std::cmp::max((height * bound_width) / (width * row_size), 1),
+        ))
     } else {
-        Ok(((width * bound_height) / (height * col_size), rows))
+        Ok((
+            std::cmp::max((width * bound_height) / (height * col_size), 1),
+            rows,
+        ))
     }
 }
 
@@ -155,9 +162,17 @@ pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
     rgb[3] < 10
 }
 
-pub fn get_ansi(rgb: [u8; 4], bg: bool) -> String {
+pub fn ansi_rgb(rgb: [u8; 4], bg: bool) -> String {
     match bg {
         false => format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
         true => format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
+    }
+}
+
+pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
+    let index = ansi256_from_rgb((rgb[0], rgb[1], rgb[2]));
+    match bg {
+        false => format!("\x1b[38;5;{}m", index),
+        true => format!("\x1b[48;5;{}m", index),
     }
 }

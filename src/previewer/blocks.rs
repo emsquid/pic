@@ -1,6 +1,9 @@
 use crate::options::{Action, Options};
-use crate::result::Result;
-use crate::utils::{fit_in_bounds, get_ansi, move_cursor, pixel_is_transparent, resize, TermSize};
+use crate::result::{Error, Result};
+use crate::utils::{
+    ansi_indexed, ansi_rgb, fit_in_bounds, move_cursor, pixel_is_transparent, resize, TermSize,
+};
+use std::env;
 use std::io::Write;
 
 const ANSI_CLEAR: &str = "\x1b[m";
@@ -38,17 +41,17 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
                         if pixel_is_transparent(backgrounds[c]) {
                             write_color_block(stdout, " ", "", "")?;
                         } else {
-                            let ansi_fg = get_ansi(backgrounds[c], false);
+                            let ansi_fg = ansi_color(backgrounds[c], false);
                             write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?;
                         };
                     }
                     (false, false) => {
                         if pixel_is_transparent(backgrounds[c]) {
-                            let ansi_fg = get_ansi(rgb, false);
+                            let ansi_fg = ansi_color(rgb, false);
                             write_color_block(stdout, BOTTOM_BLOCK, "", &ansi_fg)?;
                         } else {
-                            let ansi_bg = get_ansi(backgrounds[c], true);
-                            let ansi_fg = get_ansi(rgb, false);
+                            let ansi_bg = ansi_color(backgrounds[c], true);
+                            let ansi_fg = ansi_color(rgb, false);
                             write_color_block(stdout, BOTTOM_BLOCK, &ansi_bg, &ansi_fg)?;
                         };
                     }
@@ -68,10 +71,17 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     Ok(())
 }
 
+fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
+    let colorterm = env::var("COLORTERM").unwrap_or_default();
+    match colorterm.as_str() {
+        "truecolor" | "24bit" => ansi_rgb(rgb, bg),
+        _ => ansi_indexed(rgb, bg),
+    }
+}
+
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     match options.action {
         Action::Display => display(stdout, options),
-        _ => Ok(eprintln!("Error: these actions aren't implemented for blocks method: load/load-and-display/clear
-                          \n\nUsage: pic blocks display <PATH>\n\nFor more information, try '--help'"))
+        _ => Err(Error::ActionSupport("Blocks doesn't support load/clear")),
     }
 }

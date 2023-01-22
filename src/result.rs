@@ -5,16 +5,20 @@ pub enum Error {
     Sixel(sixel_rs::status::Error),
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
+    MethodSupport(&'static str),
+    ActionSupport(&'static str),
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Error::Io(err) => write!(f, "IO error: {}", err),
-            Error::Image(err) => write!(f, "Image error: {}", err),
-            Error::Sixel(err) => write!(f, "Sixel error: {:?}", err),
-            Error::ImageSize(err) => write!(f, "Image size error: {}", err),
-            Error::Tempfile(err) => write!(f, "Tempfile error: {}", err),
+            Error::Io(err) => write!(f, "IO error: {err}"),
+            Error::Image(err) => write!(f, "Image error: {err}"),
+            Error::Sixel(err) => write!(f, "Sixel error: {err:#?}"),
+            Error::ImageSize(err) => write!(f, "Image size error: {err}"),
+            Error::Tempfile(err) => write!(f, "Tempfile error: {err}"),
+            Error::MethodSupport(err) => write!(f, "Method error: {err}"),
+            Error::ActionSupport(err) => write!(f, "Action error: {err}"),
         }
     }
 }

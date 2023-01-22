@@ -42,7 +42,10 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
-    /// Whether to upscale or not
+    /// Upscale image if needed
     #[arg(short, long, default_value_t = false)]
     pub upscale: bool,
+    /// Do not check for method support
+    #[arg(short, long, default_value_t = false)]
+    pub force: bool,
 }
