@@ -1,6 +1,6 @@
 # PIC 📷
 
-PIC (Preview Image in CLI) is a lightweight Rust tool to preview images in your terminal!
+PIC (**P**review **I**mage in **C**LI) is a lightweight Rust tool to preview images in your terminal!
 <br>
 With support for various image protocols ([`Kitty`](https://github.com/kovidgoyal/kitty/blob/master/docs/graphics-protocol.rst), [`Sixel`](https://saitoha.github.io/libsixel/), [`iTerm`](https://iterm2.com/documentation-images.html)) it can work in several terminals, and can still use Unicode in case your terminal isn't supported.
 
@@ -22,7 +22,7 @@ With support for various image protocols ([`Kitty`](https://github.com/kovidgoya
 ### From source
 
 Prerequisites
-- [git](https://git-scm.com/downloads)
+- [Git](https://git-scm.com/downloads)
 - [Rust toolchain](https://www.rust-lang.org/tools/install)
 
 Command line instructions
