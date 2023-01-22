@@ -13,9 +13,6 @@ name = "ansi_colours"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7db9d9767fde724f83933a716ee182539788f293828244e9d999695ce0f7ba1e"
-dependencies = [
- "rgb",
-]
 
 [[package]]
 name = "autocfg"
@@ -652,15 +649,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3acd125665422973a33ac9d3dd2df85edad0f4ae9b00dafb1a05e43a9f5ef8e7"
 dependencies = [
  "winapi",
-]
-
-[[package]]
-name = "rgb"
-version = "0.8.34"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3603b7d71ca82644f79b5a06d1220e9a58ede60bd32255f698cb1af8838b8db3"
-dependencies = [
- "bytemuck",
 ]
 
 [[package]]
