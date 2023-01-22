@@ -3,6 +3,7 @@ use clap::Parser;
 mod options;
 mod previewer;
 mod result;
+mod support;
 mod utils;
 
 fn main() {

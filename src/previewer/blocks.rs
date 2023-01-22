@@ -73,6 +73,9 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     match options.action {
         Action::Display => display(stdout, options),
-        _ => Err(Error::ActionSupport("Blocks doesn't support load/clear")),
+        _ => Err(Error::ActionSupport(format!(
+            "Blocks doesn't support '{}', try '--help'",
+            options.action
+        ))),
     }
 }

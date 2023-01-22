@@ -1,69 +1,11 @@
-use crate::result::Result;
+use crate::{result::Result, support};
 use ansi_colours::ansi256_from_rgb;
 use image::DynamicImage;
 use std::{
-    env,
     fs::File,
     io::{Error, Write},
     path::PathBuf,
 };
-
-pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
-    let (tempfile, pathbuf) = tempfile::Builder::new()
-        .prefix(prefix)
-        .tempfile_in("/tmp/")?
-        .keep()?;
-
-    Ok((tempfile, pathbuf))
-}
-
-pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
-    file.write_all(buffer)?;
-    file.flush()?;
-    Ok(())
-}
-
-pub fn save_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write_all(b"\x1b[s")?;
-    stdout.flush()?;
-    Ok(())
-}
-
-pub fn restore_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write_all(b"\x1b[u")?;
-    stdout.flush()?;
-    Ok(())
-}
-
-pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
-    let binding = format!("\x1b[{}G", col + 1);
-    stdout.write_all(binding.as_bytes())?;
-    stdout.flush()?;
-    Ok(())
-}
-
-pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result {
-    let binding = format!("\x1b[{}d", row + 1);
-    stdout.write_all(binding.as_bytes())?;
-    stdout.flush()?;
-    Ok(())
-}
-
-pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result {
-    let binding = format!("\x1b[{};{}H", row + 1, col + 1);
-    stdout.write_all(binding.as_bytes())?;
-    stdout.flush()?;
-    Ok(())
-}
-
-pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) -> Result {
-    match (col, row) {
-        (Some(x), None) => move_cursor_column(stdout, x),
-        (None, Some(y)) => move_cursor_row(stdout, y),
-        (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
-        (None, None) => Ok(()),
-    }
-}
 
 #[derive(Clone, Default, Debug)]
 pub struct TermSize {
@@ -115,6 +57,65 @@ impl TermSize {
                 Err(Error::last_os_error().into())
             }
         }
+    }
+}
+
+pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
+    let (tempfile, pathbuf) = tempfile::Builder::new()
+        .prefix(prefix)
+        .tempfile_in("/tmp/")?
+        .keep()?;
+
+    Ok((tempfile, pathbuf))
+}
+
+pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
+    file.write_all(buffer)?;
+    file.flush()?;
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub fn save_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[s")?;
+    stdout.flush()?;
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub fn restore_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[u")?;
+    stdout.flush()?;
+    Ok(())
+}
+
+pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
+    let binding = format!("\x1b[{}G", col + 1);
+    stdout.write_all(binding.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
+pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result {
+    let binding = format!("\x1b[{}d", row + 1);
+    stdout.write_all(binding.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
+pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result {
+    let binding = format!("\x1b[{};{}H", row + 1, col + 1);
+    stdout.write_all(binding.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
+pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) -> Result {
+    match (col, row) {
+        (Some(x), None) => move_cursor_column(stdout, x),
+        (None, Some(y)) => move_cursor_row(stdout, y),
+        (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
+        (None, None) => Ok(()),
     }
 }
 
@@ -179,9 +180,8 @@ pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
 }
 
 pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
-    let colorterm = env::var("COLORTERM").unwrap_or_default();
-    match colorterm.as_str() {
-        "truecolor" | "24bit" => ansi_rgb(rgb, bg),
-        _ => ansi_indexed(rgb, bg),
+    match support::truecolor() {
+        true => ansi_rgb(rgb, bg),
+        false => ansi_indexed(rgb, bg),
     }
 }

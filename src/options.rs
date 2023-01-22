@@ -49,3 +49,25 @@ pub struct Options {
     #[arg(short, long, default_value_t = false)]
     pub force: bool,
 }
+
+impl std::fmt::Display for Method {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Method::Kitty => write!(f, "Kitty graphics protocol"),
+            Method::Sixel => write!(f, "Sixel protocol"),
+            Method::Iterm => write!(f, "iTerm protocol"),
+            Method::Blocks => write!(f, "ANSI blocks"),
+        }
+    }
+}
+
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Action::Display => write!(f, "display"),
+            Action::Load => write!(f, "load"),
+            Action::LoadAndDisplay => write!(f, "load-and-display"),
+            Action::Clear => write!(f, "clear"),
+        }
+    }
+}

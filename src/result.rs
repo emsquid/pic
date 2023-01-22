@@ -5,8 +5,8 @@ pub enum Error {
     Sixel(sixel_rs::status::Error),
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
-    MethodSupport(&'static str),
-    ActionSupport(&'static str),
+    MethodSupport(String),
+    ActionSupport(String),
 }
 
 impl std::fmt::Display for Error {
