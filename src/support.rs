@@ -1,4 +1,4 @@
-use crate::{options::Method, result::Result};
+use crate::{options::Protocol, result::Result};
 use console::{Key, Term};
 use std::{env, io::Write};
 
@@ -73,12 +73,12 @@ fn iterm() -> bool {
     find_match(&ITERM_PROGRAMS, &program) || find_match(&ITERM_LCS, &lc)
 }
 
-pub fn has_support(method: Method) -> bool {
+pub fn has_support(method: Protocol) -> bool {
     match method {
-        Method::Kitty => kitty(),
-        Method::Sixel => sixel(),
-        Method::Iterm => iterm(),
-        Method::Blocks => true,
+        Protocol::Kitty => kitty(),
+        Protocol::Sixel => sixel(),
+        Protocol::Iterm => iterm(),
+        Protocol::Blocks => true,
     }
 }
 

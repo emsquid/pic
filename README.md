@@ -37,15 +37,15 @@ cargo install --path pic
 pic kitty display Images/YourFavouriteImage.png --cols 13 ...
 ```
 
-## Command line options
+## Command line usage
 
 ```
 Preview Images in CLI.
 
-Usage: pic [OPTIONS] <METHOD> <ACTION> <PATH>
+Usage: pic [OPTIONS] <PROTOCOL> <ACTION> <PATH>
 
 Arguments:
-  <METHOD>  Previewing method to use [possible values: kitty, sixel, iterm, blocks]
+  <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
   <ACTION>  What to do with the image [possible values: display, load, load-and-display, clear]
   <PATH>    Path to the image to preview
 

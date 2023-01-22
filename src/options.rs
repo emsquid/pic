@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Method {
+pub enum Protocol {
     Kitty,
     Sixel,
     Iterm,
@@ -23,8 +23,8 @@ pub enum Action {
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Options {
-    /// Previewing method to use
-    pub method: Method,
+    /// Previewing protocol to use
+    pub protocol: Protocol,
     /// What to do with the image
     pub action: Action,
     /// Path to the image to preview
@@ -53,13 +53,13 @@ pub struct Options {
     pub force: bool,
 }
 
-impl std::fmt::Display for Method {
+impl std::fmt::Display for Protocol {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Method::Kitty => write!(f, "Kitty graphics protocol"),
-            Method::Sixel => write!(f, "Sixel protocol"),
-            Method::Iterm => write!(f, "iTerm protocol"),
-            Method::Blocks => write!(f, "ANSI blocks"),
+            Protocol::Kitty => write!(f, "Kitty graphics protocol"),
+            Protocol::Sixel => write!(f, "Sixel protocol"),
+            Protocol::Iterm => write!(f, "iTerm protocol"),
+            Protocol::Blocks => write!(f, "ANSI blocks"),
         }
     }
 }
