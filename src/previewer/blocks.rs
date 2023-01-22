@@ -21,8 +21,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
     let rgba = resize(&image, cols, rows * 2).to_rgba8();
 
+    move_cursor(stdout, options.x, options.y)?;
     let mut backgrounds = vec![[0; 4]; cols as usize];
-
     for (r, row) in rgba.enumerate_rows() {
         let is_bg = r % 2 == 0;
 
@@ -61,8 +61,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
         if !is_bg {
             stdout.write_all(b"\n")?;
         } else {
-            // if bg, get ready for writing next line
-            move_cursor(stdout, options.x, options.y)?;
+            // if bg, get ready for writing next line (only need to move col)
+            move_cursor(stdout, options.x, None)?;
         };
     }
 
