@@ -46,8 +46,8 @@ Usage: pic [OPTIONS] <PROTOCOL> <ACTION> <PATH>
 
 Arguments:
   <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
-  <ACTION>  What to do with the image [possible values: display, load, load-and-display, clear]
-  <PATH>    Path to the image to preview
+  <ACTION>    What to do with the image [possible values: display, load, load-and-display, clear]
+  <PATH>      Path to the image to preview
 
 Options:
   -i, --id <ID>      id to use (kitty only)
@@ -56,6 +56,7 @@ Options:
   -c, --cols <COLS>  Number of cols to fit the preview in
   -r, --rows <ROWS>  Number of rows to fit the preview in
   -u, --upscale      Upscale image if needed
+  -s, --static       Only show first frame of GIFs
   -f, --force        Do not check for protocol support
   -h, --help         Print help
   -V, --version      Print version
@@ -65,10 +66,14 @@ Options:
 
 Help would be greatly appreciated
 
-- [ ] Write a greater README
-- [ ] Make releases/packages (publish on crates.io)
-- [ ] Preview GIFs with Kitty protocol/Unicode blocks
-- [ ] Work on handling transparency/GIFs with Sixel protocol (GIFs work but don't render well)
-- [ ] Improve protocol support checking (need to test in various terminal)
-- [ ] Show cooler error messages
-- [ ] Write tests (I guess I need to do that...)
+- Documentation
+    * [ ] Write a greater README
+    * [ ] Make releases/packages (publish on crates.io)
+- Protocols support
+    * [ ] Preview GIFs with Kitty protocol
+    * [x] Preview GIFs with Unicode blocks (needs improvements)
+    * [ ] Work on handling transparency/GIFs with Sixel protocol (GIFs work but don't render well)
+    * [ ] Improve protocol support checking (need to test in various terminal)
+- Miscellaneous
+    * [ ] Show cooler error messages
+    * [ ] Write tests (I guess I need to do that...)
