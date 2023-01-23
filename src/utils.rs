@@ -1,6 +1,6 @@
 use crate::{result::Result, support};
 use ansi_colours::ansi256_from_rgb;
-use image::DynamicImage;
+use image::{codecs::png::PngEncoder, DynamicImage, ImageEncoder};
 use std::{
     fs::File,
     io::{Error, Write},
@@ -214,4 +214,16 @@ pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
         true => ansi_rgb(rgb, bg),
         false => ansi_indexed(rgb, bg),
     }
+}
+
+// image is mainly supposed to be a GIF
+pub fn convert_to_image_buffer(image: &DynamicImage, width: u32, height: u32) -> Result<Vec<u8>> {
+    let mut image_buffer = Vec::new();
+    PngEncoder::new(&mut image_buffer).write_image(
+        image.as_bytes(),
+        width,
+        height,
+        image.color(),
+    )?;
+    Ok(image_buffer)
 }

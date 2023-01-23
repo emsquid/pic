@@ -16,6 +16,7 @@ With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/ki
     * `--cols` and `--rows` options to choose the size of your image (always tries preserving ratio)
     * `--upscale` option to preview image at full wanted size if needed
     * `--force` option to bypass protocol support
+    * `--static` option to only show first frame of GIFs
 
 ## Installation
 
@@ -50,11 +51,11 @@ Arguments:
   <PATH>      Path to the image to preview
 
 Options:
-  -i, --id <ID>      id to use (kitty only)
   -x, --x <X>        x position (0 is left)
   -y, --y <Y>        y position (0 is top)
   -c, --cols <COLS>  Number of cols to fit the preview in
   -r, --rows <ROWS>  Number of rows to fit the preview in
+  -i, --id <ID>      id to use (kitty only)
   -u, --upscale      Upscale image if needed
   -s, --static       Only show first frame of GIFs
   -f, --force        Do not check for protocol support
