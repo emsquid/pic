@@ -2,7 +2,7 @@
 
 PIC (**P**review **I**mage in **C**LI) is a lightweight Rust tool to preview images in your terminal!
 <br>
-With support for various image protocols ([`Kitty`](https://github.com/kovidgoyal/kitty/blob/master/docs/graphics-protocol.rst), [`Sixel`](https://saitoha.github.io/libsixel/), [`iTerm`](https://iterm2.com/documentation-images.html)) it can work in several terminals, and can still use Unicode in case your terminal isn't supported.
+With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/kitty/graphics-protocol/), [`Sixel`](https://saitoha.github.io/libsixel/), [`iTerm`](https://iterm2.com/documentation-images.html)) it can work in several terminals, and can still use Unicode in case your terminal isn't supported.
 
 ## Features
 

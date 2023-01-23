@@ -89,6 +89,22 @@ pub fn restore_cursor(stdout: &mut impl Write) -> Result {
     Ok(())
 }
 
+#[allow(dead_code)]
+pub fn move_cursor_up(stdout: &mut impl Write, x: u32) -> Result {
+    let binding = format!("\x1b[{}A", x + 1);
+    stdout.write_all(binding.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub fn move_cursor_down(stdout: &mut impl Write, x: u32) -> Result {
+    let binding = format!("\x1b[{}B", x + 1);
+    stdout.write_all(binding.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
 pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
     let binding = format!("\x1b[{}G", col + 1);
     stdout.write_all(binding.as_bytes())?;
@@ -117,6 +133,20 @@ pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) 
         (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
         (None, None) => Ok(()),
     }
+}
+
+#[allow(dead_code)]
+pub fn hide_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[?25l")?;
+    stdout.flush()?;
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub fn show_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[?25h")?;
+    stdout.flush()?;
+    Ok(())
 }
 
 pub fn fit_in_bounds(

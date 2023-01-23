@@ -48,6 +48,9 @@ pub struct Options {
     /// Upscale image if needed
     #[arg(short, long, default_value_t = false)]
     pub upscale: bool,
+    /// Only show first frame of GIFs
+    #[arg(short = 's', long = "static", default_value_t = false)]
+    pub gif_static: bool,
     /// Do not check for protocol support
     #[arg(short, long, default_value_t = false)]
     pub force: bool,
