@@ -30,9 +30,6 @@ pub struct Options {
     /// Path to the image to preview
     pub path: PathBuf,
 
-    /// id to use (kitty only)
-    #[arg(short, long)]
-    pub id: Option<u32>,
     /// x position (0 is left)
     #[arg(short, long)]
     pub x: Option<u32>,
@@ -45,6 +42,9 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
+    /// id to use (kitty only)
+    #[arg(short, long)]
+    pub id: Option<u32>,
     /// Upscale image if needed
     #[arg(short, long, default_value_t = false)]
     pub upscale: bool,

@@ -77,13 +77,14 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
         .iter()
         .map(|frame| {
             let delay = Duration::from(frame.delay());
-            let image = &DynamicImage::ImageRgba8(frame.to_owned().into_buffer());
+            let image = &DynamicImage::ImageRgba8(frame.buffer().to_owned());
             let (width, height) = (image.width(), image.height());
             let (cols, rows) =
                 fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
                     .unwrap_or_default();
 
-            (delay, resize(&image, cols, rows * 2))
+            // when playing gif we need one free row at the bottom (rows - 1)
+            (delay, resize(&image, cols, (rows - 1) * 2))
         })
         .collect();
 
