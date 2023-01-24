@@ -135,16 +135,20 @@ pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) 
     }
 }
 
-#[allow(dead_code)]
-pub fn hide_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write_all(b"\x1b[?25l")?;
+pub fn show_cursor(stdout: &mut impl Write) -> Result {
+    stdout.write_all(b"\x1b[?25h")?;
     stdout.flush()?;
     Ok(())
 }
 
-#[allow(dead_code)]
-pub fn show_cursor(stdout: &mut impl Write) -> Result {
-    stdout.write_all(b"\x1b[?25h")?;
+pub fn hide_cursor(stdout: &mut impl Write) -> Result {
+    // show cursor on ctrlc
+    ctrlc::set_handler(|| {
+        show_cursor(&mut std::io::stdout()).expect("IO error: Couldn't show cursor");
+        std::process::exit(0);
+    })?;
+
+    stdout.write_all(b"\x1b[?25l")?;
     stdout.flush()?;
     Ok(())
 }
