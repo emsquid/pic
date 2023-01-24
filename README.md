@@ -35,32 +35,33 @@ git clone https://github.com/emsquid/pic
 cargo install --path pic
 
 # Use freely
-pic kitty display Images/YourFavouriteImage.png --cols 13 ...
+pic kitty Images/YourFavouriteImage.png --cols 13 ...
 ```
 
 ## Command line usage
 
 ```
-Preview Images in CLI.
+Preview Image in CLI.
 
-Usage: pic [OPTIONS] <PROTOCOL> <ACTION> <PATH>
+Usage: pic [OPTIONS] <PROTOCOL> <PATH>
 
 Arguments:
   <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
-  <ACTION>    What to do with the image [possible values: display, load, load-and-display, clear]
-  <PATH>      Path to the image to preview
+  <PATH>      Image to preview
 
 Options:
-  -x, --x <X>        x position (0 is left)
-  -y, --y <Y>        y position (0 is top)
-  -c, --cols <COLS>  Number of cols to fit the preview in
-  -r, --rows <ROWS>  Number of rows to fit the preview in
-  -i, --id <ID>      id to use (kitty only)
-  -u, --upscale      Upscale image if needed
-  -s, --static       Only show first frame of GIFs
-  -f, --force        Do not check for protocol support
-  -h, --help         Print help
-  -V, --version      Print version
+  -x, --x <X>         x position (0 is left)
+  -y, --y <Y>         y position (0 is top)
+  -c, --cols <COLS>   Number of cols to fit the preview in
+  -r, --rows <ROWS>   Number of rows to fit the preview in
+  -u, --upscale       Upscale image if needed
+  -s, --static        Only show first frame of GIFs
+  -l, --load <ID>     Load image with the given id (kitty only)
+  -d, --display <ID>  Display image with the given id (kitty only)
+  -c, --clear <ID>    Clear image with the given id (0 for all) (kitty only)
+  -f, --force         Do not check for protocol support
+  -h, --help          Print help
+  -V, --version       Print version
 ```
 
 ## Progress
