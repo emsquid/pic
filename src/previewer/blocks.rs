@@ -20,7 +20,7 @@ fn write_color_block(stdout: &mut impl Write, block: &str, ansi_bg: &str, ansi_f
     Ok(())
 }
 
-/// This function should only print a 'ready to display' frame
+/// this function should only print a 'ready to display' frame
 fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Options) -> Result {
     let rgba = &image.to_rgba8();
     let term_size = TermSize::from_ioctl()?;

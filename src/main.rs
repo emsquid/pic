@@ -10,7 +10,7 @@ fn main() {
     let mut stdout = std::io::stdout();
     let options = options::Options::parse();
 
-    // prevent cursor flickering
+    // prevents cursor flickering
     utils::hide_cursor(&mut stdout).unwrap();
     match previewer::preview(&mut stdout, &options) {
         Ok(()) => {}

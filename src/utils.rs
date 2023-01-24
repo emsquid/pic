@@ -9,13 +9,13 @@ use std::{
 
 #[derive(Clone, Default, Debug)]
 pub struct TermSize {
-    /// The amount of visible rows in the pty
+    /// the amount of visible rows in the pty
     pub(crate) rows: u32,
-    /// The amount of visible columns in the pty
+    /// the amount of visible columns in the pty
     pub(crate) cols: u32,
-    /// The width of the view in pixels
+    /// the width of the view in pixels
     pub(crate) width: u32,
-    /// The height of the view in pixels
+    /// the height of the view in pixels
     pub(crate) height: u32,
 }
 
@@ -142,7 +142,7 @@ pub fn show_cursor(stdout: &mut impl Write) -> Result {
 }
 
 pub fn hide_cursor(stdout: &mut impl Write) -> Result {
-    // show cursor on ctrlc
+    // show cursor back on ctrlc
     ctrlc::set_handler(|| {
         show_cursor(&mut std::io::stdout()).expect("IO error: Couldn't show cursor");
         std::process::exit(0);
@@ -194,6 +194,18 @@ pub fn resize(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
     image.resize_exact(width, height, image::imageops::Triangle)
 }
 
+/// image is mainly supposed to be a GIF here
+pub fn convert_to_image_buffer(image: &DynamicImage, width: u32, height: u32) -> Result<Vec<u8>> {
+    let mut image_buffer = Vec::new();
+    PngEncoder::new(&mut image_buffer).write_image(
+        image.as_bytes(),
+        width,
+        height,
+        image.color(),
+    )?;
+    Ok(image_buffer)
+}
+
 pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
     rgb[3] < 25
 }
@@ -218,16 +230,4 @@ pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
         true => ansi_rgb(rgb, bg),
         false => ansi_indexed(rgb, bg),
     }
-}
-
-// image is mainly supposed to be a GIF
-pub fn convert_to_image_buffer(image: &DynamicImage, width: u32, height: u32) -> Result<Vec<u8>> {
-    let mut image_buffer = Vec::new();
-    PngEncoder::new(&mut image_buffer).write_image(
-        image.as_bytes(),
-        width,
-        height,
-        image.color(),
-    )?;
-    Ok(image_buffer)
 }

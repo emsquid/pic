@@ -21,7 +21,9 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
     encoder.set_height(Pixel((rows * row_size) as u64))?;
     encoder.set_resampling(ResampleMethod::Nearest)?;
     encoder.set_encode_policy(EncodePolicy::Fast)?;
-    encoder.use_static()?;
+    if options.gif_static {
+        encoder.use_static()?
+    };
 
     move_cursor(stdout, options.x, options.y)?;
     encoder.encode_file(&options.path)?;

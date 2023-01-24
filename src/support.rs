@@ -31,7 +31,7 @@ fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> R
     stdout.flush()?;
 
     let mut response = String::new();
-    // What if the terminal doesn't answer ?
+    // what if the terminal doesn't answer ?
     while !response.contains("c") {
         match stdout.read_key() {
             Ok(Key::Char(chr)) => response.push(chr),
