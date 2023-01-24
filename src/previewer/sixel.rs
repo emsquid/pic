@@ -1,5 +1,5 @@
-use crate::options::{Action, Options};
-use crate::result::{Error, Result};
+use crate::options::Options;
+use crate::result::Result;
 use crate::utils::{fit_in_bounds, move_cursor, TermSize};
 use sixel_rs::encoder::Encoder;
 use sixel_rs::optflags::{EncodePolicy, ResampleMethod, SizeSpecification::Pixel};
@@ -31,11 +31,5 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
 }
 
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Display => display(stdout, options),
-        _ => Err(Error::ActionSupport(format!(
-            "Sixel doesn't support '{}', try '--help'",
-            options.action
-        ))),
-    }
+    display(stdout, options)
 }

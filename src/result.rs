@@ -5,8 +5,8 @@ pub enum Error {
     Sixel(sixel_rs::status::Error),
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
-    MethodSupport(String),
-    ActionSupport(String),
+    Ctrlc(ctrlc::Error),
+    ProtocolSupport(String),
 }
 
 impl std::fmt::Display for Error {
@@ -17,8 +17,8 @@ impl std::fmt::Display for Error {
             Error::Sixel(err) => write!(f, "Sixel error: {err:#?}"),
             Error::ImageSize(err) => write!(f, "Image size error: {err}"),
             Error::Tempfile(err) => write!(f, "Tempfile error: {err}"),
-            Error::MethodSupport(err) => write!(f, "Method error: {err}"),
-            Error::ActionSupport(err) => write!(f, "Action error: {err}"),
+            Error::Ctrlc(err) => write!(f, "CTRL-C error: {err}"),
+            Error::ProtocolSupport(err) => write!(f, "Protocol error: {err}"),
         }
     }
 }
@@ -51,6 +51,12 @@ impl From<imagesize::ImageError> for Error {
 impl From<tempfile::PersistError> for Error {
     fn from(err: tempfile::PersistError) -> Self {
         Error::Tempfile(err)
+    }
+}
+
+impl From<ctrlc::Error> for Error {
+    fn from(err: ctrlc::Error) -> Self {
+        Error::Ctrlc(err)
     }
 }
 

@@ -9,25 +9,12 @@ pub enum Protocol {
     Blocks,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Action {
-    Display,
-    // (kitty only)
-    Load,
-    // (kitty only)
-    LoadAndDisplay,
-    // (kitty only)
-    Clear,
-}
-
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Options {
     /// Previewing protocol to use
     pub protocol: Protocol,
-    /// What to do with the image
-    pub action: Action,
-    /// Path to the image to preview
+    /// Image to preview
     pub path: PathBuf,
 
     /// x position (0 is left)
@@ -42,17 +29,23 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
-    /// id to use (kitty only)
-    #[arg(short, long)]
-    pub id: Option<u32>,
     /// Upscale image if needed
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long)]
     pub upscale: bool,
     /// Only show first frame of GIFs
-    #[arg(short = 's', long = "static", default_value_t = false)]
+    #[arg(short = 's', long = "static")]
     pub gif_static: bool,
+    /// Load image with the given id (kitty only)
+    #[arg(short, long, value_name = "ID")]
+    pub load: Option<u32>,
+    /// Display image with the given id (kitty only)
+    #[arg(short, long, value_name = "ID")]
+    pub display: Option<u32>,
+    /// Clear image with the given id (0 for all) (kitty only)
+    #[arg(short, long, value_name = "ID")]
+    pub clear: Option<u32>,
     /// Do not check for protocol support
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long)]
     pub force: bool,
 }
 
@@ -62,18 +55,7 @@ impl std::fmt::Display for Protocol {
             Protocol::Kitty => write!(f, "Kitty graphics protocol"),
             Protocol::Sixel => write!(f, "Sixel protocol"),
             Protocol::Iterm => write!(f, "iTerm protocol"),
-            Protocol::Blocks => write!(f, "ANSI blocks"),
-        }
-    }
-}
-
-impl std::fmt::Display for Action {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Action::Display => write!(f, "display"),
-            Action::Load => write!(f, "load"),
-            Action::LoadAndDisplay => write!(f, "load-and-display"),
-            Action::Clear => write!(f, "clear"),
+            Protocol::Blocks => write!(f, "Unicode blocks"),
         }
     }
 }

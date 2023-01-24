@@ -1,5 +1,5 @@
-use crate::options::{Action, Options};
-use crate::result::{Error, Result};
+use crate::options::Options;
+use crate::result::Result;
 use crate::utils::{
     ansi_color, fit_in_bounds, move_cursor, move_cursor_up, pixel_is_transparent, resize, TermSize,
 };
@@ -88,10 +88,13 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
         })
         .collect();
 
-    for (delay, frame) in frames {
+    for (i, (delay, frame)) in frames.iter().enumerate() {
         display_frame(stdout, &frame, options)?;
-        thread::sleep(delay);
-        move_cursor_up(stdout, frame.height() / 2 - 1)?;
+        thread::sleep(*delay);
+
+        if i < frames.len() - 1 {
+            move_cursor_up(stdout, frame.height() / 2 - 1)?;
+        }
     }
 
     Ok(())
@@ -105,27 +108,13 @@ fn display_image(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> R
     display_frame(stdout, &resize(&image, cols, rows * 2), options)
 }
 
-fn display(stdout: &mut impl Write, options: &Options) -> Result {
+pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     let mut image = File::open(&options.path)?;
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
-    // hiding cursor might leave cursor hidden
-    // hide_cursor(stdout)?;
     match (options.gif_static, image::guess_format(&buffer)?) {
-        (false, ImageFormat::Gif) => display_gif(stdout, &buffer, options)?,
-        _ => display_image(stdout, &buffer, options)?,
-    }
-    // show_cursor(stdout)?;
-    Ok(())
-}
-
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Display => display(stdout, options),
-        _ => Err(Error::ActionSupport(format!(
-            "Blocks doesn't support '{}', try '--help'",
-            options.action
-        ))),
+        (false, ImageFormat::Gif) => display_gif(stdout, &buffer, options),
+        _ => display_image(stdout, &buffer, options),
     }
 }

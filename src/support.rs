@@ -1,5 +1,6 @@
-use crate::{options::Protocol, result::Result};
 use console::{Key, Term};
+
+use crate::{options::Protocol, result::Result};
 use std::{env, io::Write};
 
 // add supported Terminals based on their eventual environment variables
@@ -28,15 +29,15 @@ fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> R
     let command = [subcommand.unwrap_or_default(), b"\x1b[c"].concat();
     stdout.write_all(&command)?;
     stdout.flush()?;
-    // What if the terminal doesn't answer ?
+
     let mut response = String::new();
-    while let Ok(key) = stdout.read_key() {
-        if let Key::Char(chr) = key {
-            response.push(chr);
-            // 'c' should end a primary device attributes response
-            if chr == 'c' {
-                break;
-            }
+    // What if the terminal doesn't answer ?
+    while !response.contains("c") {
+        match stdout.read_key() {
+            Ok(Key::Char(chr)) => response.push(chr),
+            Ok(Key::UnknownEscSeq(esc)) => response.extend(esc),
+            Err(_) => break,
+            _ => (),
         }
     }
 

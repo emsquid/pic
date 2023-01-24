@@ -18,6 +18,6 @@ pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
         }
     } else {
         let err = format!("Your terminal doesn't support {}", options.protocol);
-        Err(Error::MethodSupport(err))
+        Err(Error::ProtocolSupport(err))
     }
 }

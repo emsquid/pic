@@ -1,4 +1,4 @@
-use crate::options::{Action, Options};
+use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
@@ -10,61 +10,52 @@ const PROTOCOL_END: &str = "\x1b\\";
 
 fn send_graphics_command(stdout: &mut impl Write, command: &str, payload: Option<&str>) -> Result {
     let data = general_purpose::STANDARD.encode(payload.unwrap_or_default());
+    let command = format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}");
 
-    stdout.write_all(format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}").as_bytes())?;
+    stdout.write_all(command.as_bytes())?;
+
     stdout.flush()?;
     Ok(())
 }
 
-fn clear(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.id {
-        Some(id) => send_graphics_command(stdout, &format!("a=d,d=i,i={id}"), None),
-        None => send_graphics_command(stdout, "a=d,d=a", None),
+fn clear(stdout: &mut impl Write, id: u32, _options: &Options) -> Result {
+    if id == 0 {
+        send_graphics_command(stdout, "a=d,d=a", None)
+    } else {
+        send_graphics_command(stdout, &format!("a=d,d=i,i={id}"), None)
     }
 }
 
-fn load(stdout: &mut impl Write, options: &Options) -> Result {
+fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
     let image = image::open(&options.path)?.to_rgba8();
     let (width, height) = image.dimensions();
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
     save_in_tmp_file(image.as_raw(), &mut tempfile)?;
 
-    let id = match options.id {
-        Some(id) => id,
-        None => panic!("Load error: id is required"),
-    };
-
     let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
-
     send_graphics_command(stdout, &command, pathbuf.to_str())
 }
 
-fn display(stdout: &mut impl Write, options: &Options) -> Result {
+fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Result {
     let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
-    let (command, payload) = match options.id {
-        Some(id) => {
-            let image_size = imagesize::size(&options.path)?;
-            let (width, height) = (image_size.width as u32, image_size.height as u32);
+    let (command, payload) = if let Some(id) = id {
+        let image_size = imagesize::size(&options.path)?;
+        let (width, height) = (image_size.width as u32, image_size.height as u32);
+        let (cols, rows) =
+            fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
-            let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
+        let command = format!("a=p,c={cols},r={rows},i={id},q=2");
+        (command, None)
+    } else {
+        let image = image::open(&options.path)?.to_rgba8();
+        let (width, height) = image.dimensions();
+        let (cols, rows) =
+            fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
+        save_in_tmp_file(image.as_raw(), &mut tempfile)?;
+        drop(tempfile);
 
-            (format!("a=p,c={cols},r={rows},i={id},q=2"), None)
-        }
-        None => {
-            let image = image::open(&options.path)?.to_rgba8();
-            let (width, height) = image.dimensions();
-            save_in_tmp_file(image.as_raw(), &mut tempfile)?;
-            drop(tempfile);
-
-            let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
-
-            (
-                format!("a=T,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",),
-                pathbuf.to_str(),
-            )
-        }
+        let command = format!("a=T,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",);
+        (command, pathbuf.to_str())
     };
 
     move_cursor(stdout, options.x, options.y)?;
@@ -75,16 +66,18 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     Ok(())
 }
 
-fn load_and_display(stdout: &mut impl Write, options: &Options) -> Result {
-    load(stdout, options)?;
-    display(stdout, options)
-}
-
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Load => load(stdout, options),
-        Action::Display => display(stdout, options),
-        Action::LoadAndDisplay => load_and_display(stdout, options),
-        Action::Clear => clear(stdout, options),
+    if let Some(id) = options.clear {
+        clear(stdout, id, options)?;
+    }
+
+    match (options.load, options.display) {
+        (Some(id_load), Some(id_display)) => {
+            load(stdout, id_load, options)?;
+            display(stdout, Some(id_display), options)
+        }
+        (Some(id), None) => load(stdout, id, options),
+        (None, Some(id)) => display(stdout, Some(id), options),
+        (None, None) => display(stdout, None, options),
     }
 }

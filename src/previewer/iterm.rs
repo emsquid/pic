@@ -1,5 +1,5 @@
-use crate::options::{Action, Options};
-use crate::result::{Error, Result};
+use crate::options::Options;
+use crate::result::Result;
 use crate::utils::{convert_to_image_buffer, fit_in_bounds, move_cursor};
 use base64::{engine::general_purpose, Engine as _};
 use image::ImageFormat;
@@ -33,11 +33,5 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
 }
 
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match options.action {
-        Action::Display => display(stdout, options),
-        _ => Err(Error::ActionSupport(format!(
-            "Iterm doesn't support '{}', try '--help'",
-            options.action
-        ))),
-    }
+    display(stdout, options)
 }
