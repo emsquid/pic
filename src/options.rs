@@ -35,14 +35,17 @@ pub struct Options {
     /// Only show first frame of GIFs
     #[arg(short = 's', long = "static")]
     pub gif_static: bool,
+    /// Loop GIFs infinitely
+    #[arg(short = 'l', long = "loop")]
+    pub gif_loop: bool,
     /// Load image with the given id (kitty only)
-    #[arg(short, long, value_name = "ID")]
+    #[arg(long, value_name = "ID")]
     pub load: Option<u32>,
     /// Display image with the given id (kitty only)
-    #[arg(short, long, value_name = "ID")]
+    #[arg(long, value_name = "ID")]
     pub display: Option<u32>,
     /// Clear image with the given id (0 for all) (kitty only)
-    #[arg(short, long, value_name = "ID")]
+    #[arg(long, value_name = "ID")]
     pub clear: Option<u32>,
     /// Do not check for protocol support
     #[arg(short, long)]

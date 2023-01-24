@@ -22,7 +22,7 @@ fn write_color_block(stdout: &mut impl Write, block: &str, ansi_bg: &str, ansi_f
 
 /// this function should only print a 'ready to display' frame
 fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Options) -> Result {
-    let rgba = &image.to_rgba8();
+    let rgba = image.to_rgba8();
     let term_size = TermSize::from_ioctl()?;
 
     move_cursor(stdout, options.x, options.y)?;
@@ -70,36 +70,6 @@ fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Option
     Ok(())
 }
 
-fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Result {
-    let frames: Vec<(Duration, DynamicImage)> = GifDecoder::new(buffer)?
-        .into_frames()
-        .collect_frames()?
-        .iter()
-        .map(|frame| {
-            let delay = Duration::from(frame.delay());
-            let image = &DynamicImage::ImageRgba8(frame.buffer().to_owned());
-            let (width, height) = (image.width(), image.height());
-            let (cols, rows) =
-                fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
-                    .unwrap_or_default();
-
-            // when playing gif we need one free row at the bottom (rows - 1)
-            (delay, resize(&image, cols, (rows - 1) * 2))
-        })
-        .collect();
-
-    for (i, (delay, frame)) in frames.iter().enumerate() {
-        display_frame(stdout, &frame, options)?;
-        thread::sleep(*delay);
-
-        if i < frames.len() - 1 {
-            move_cursor_up(stdout, frame.height() / 2 - 1)?;
-        }
-    }
-
-    Ok(())
-}
-
 fn display_image(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Result {
     let image = image::load_from_memory(buffer)?;
     let (width, height) = (image.width(), image.height());
@@ -108,13 +78,53 @@ fn display_image(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> R
     display_frame(stdout, &resize(&image, cols, rows * 2), options)
 }
 
+fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Result {
+    if options.gif_static {
+        display_image(stdout, buffer, options)
+    } else {
+        let frames: Vec<(Duration, DynamicImage)> = GifDecoder::new(buffer)?
+            .into_frames()
+            .collect_frames()?
+            .iter()
+            .map(|frame| {
+                let delay = Duration::from(frame.delay());
+                let image = &DynamicImage::ImageRgba8(frame.buffer().to_owned());
+                let (width, height) = (image.width(), image.height());
+                let (cols, rows) =
+                    fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
+                        .unwrap_or_default();
+
+                // when playing gif we need one free row at the bottom (rows - 1)
+                (delay, resize(&image, cols, (rows - 1) * 2))
+            })
+            .collect();
+
+        loop {
+            for (i, (delay, frame)) in frames.iter().enumerate() {
+                display_frame(stdout, &frame, options)?;
+                thread::sleep(*delay);
+
+                if options.gif_loop || i < frames.len() - 1 {
+                    move_cursor_up(stdout, frame.height() / 2 - 1)?;
+                }
+            }
+
+            if !options.gif_loop {
+                break;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     let mut image = File::open(&options.path)?;
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
-    match (options.gif_static, image::guess_format(&buffer)?) {
-        (false, ImageFormat::Gif) => display_gif(stdout, &buffer, options),
+    match image::guess_format(&buffer)? {
+        ImageFormat::Gif => display_gif(stdout, &buffer, options),
         _ => display_image(stdout, &buffer, options),
     }
 }
