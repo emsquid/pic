@@ -36,7 +36,7 @@ git clone https://github.com/emsquid/pic
 cargo install --path pic
 
 # Use freely
-pic kitty Images/YourFavouriteImage.png --cols 13 ...
+pic Images/YourFavouriteImage.png --cols 13 ...
 ```
 
 ## Command line usage

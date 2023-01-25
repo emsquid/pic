@@ -166,7 +166,8 @@ pub fn fit_in_bounds(
         Some((c, r)) => (c, r),
     };
     let cols = cols.unwrap_or(term_size.cols);
-    let rows = rows.unwrap_or(term_size.rows);
+    // Terminal prompt puts the image out of screen (rows - 1)
+    let rows = rows.unwrap_or(term_size.rows - 1);
 
     let (bound_width, bound_height) = (cols * col_size, rows * row_size);
 

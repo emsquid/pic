@@ -94,8 +94,7 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
                     fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
                         .unwrap_or_default();
 
-                // when playing gif we need one free row at the bottom (rows - 1)
-                (delay, resize(&image, cols, (rows - 1) * 2))
+                (delay, resize(&image, cols, rows * 2))
             })
             .collect();
 
