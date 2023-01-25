@@ -1,11 +1,12 @@
 [package]
 name = "pic"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Emanuel <emanuel.morille@proton.me>"]
 description = "Preview Image in CLI."
 repository = "https://github.com/emsquid/pic"
 readme = "README.md"
+license = "MIT"
 
 [dependencies]
 ansi_colours = { version = "1.2.1", default-features = false }
