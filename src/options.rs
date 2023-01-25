@@ -1,19 +1,10 @@
-use clap::{Parser, ValueEnum};
+use crate::support::Protocol;
+use clap::Parser;
 use std::path::PathBuf;
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Protocol {
-    Kitty,
-    Sixel,
-    Iterm,
-    Blocks,
-}
 
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Options {
-    /// Previewing protocol to use
-    pub protocol: Protocol,
     /// Image to preview
     pub path: PathBuf,
 
@@ -38,6 +29,9 @@ pub struct Options {
     /// Loop GIFs infinitely
     #[arg(short = 'l', long = "loop")]
     pub gif_loop: bool,
+    /// Previewing protocol to use
+    #[arg(short, long)]
+    pub protocol: Option<Protocol>,
     /// Load image with the given id (kitty only)
     #[arg(long, value_name = "ID")]
     pub load: Option<u32>,
@@ -47,18 +41,4 @@ pub struct Options {
     /// Clear image with the given id (0 for all) (kitty only)
     #[arg(long, value_name = "ID")]
     pub clear: Option<u32>,
-    /// Do not check for protocol support
-    #[arg(short, long)]
-    pub force: bool,
-}
-
-impl std::fmt::Display for Protocol {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Protocol::Kitty => write!(f, "Kitty graphics protocol"),
-            Protocol::Sixel => write!(f, "Sixel protocol"),
-            Protocol::Iterm => write!(f, "iTerm protocol"),
-            Protocol::Blocks => write!(f, "Unicode blocks"),
-        }
-    }
 }

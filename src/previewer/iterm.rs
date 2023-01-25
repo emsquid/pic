@@ -15,8 +15,8 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     let (width, height) = (image_size.width as u32, image_size.height as u32);
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
-    let data = match (options.gif_static, image::guess_format(&buffer)?) {
-        (true, ImageFormat::Gif) => {
+    let data = match (image::guess_format(&buffer)?, options.gif_static) {
+        (ImageFormat::Gif, true) => {
             let gif = image::load_from_memory(&buffer)?;
             general_purpose::STANDARD.encode(convert_to_image_buffer(&gif, width, height)?)
         }

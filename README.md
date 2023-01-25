@@ -15,9 +15,9 @@ With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/ki
     * `--x` and `--y` options to choose where to display your image
     * `--cols` and `--rows` options to choose the size of your image (always tries preserving ratio)
     * `--upscale` option to preview image at full wanted size if needed
-    * `--force` option to bypass protocol support
-    * `--static` option to only show first frame of GIFs
-    * `--loop` option to loop GIFs infinitely
+    * `--static` and `--loop` options to interact with GIFs
+    * `--protocol` option to choose a protocol
+    * `--load` `--display` and `--clear` options to interact with Kitty protocol
 
 ## Installation
 
@@ -44,26 +44,25 @@ pic kitty Images/YourFavouriteImage.png --cols 13 ...
 ```
 Preview Image in CLI.
 
-Usage: pic [OPTIONS] <PROTOCOL> <PATH>
+Usage: pic [OPTIONS] <PATH>
 
 Arguments:
-  <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
-  <PATH>      Image to preview
+  <PATH>  Image to preview
 
 Options:
-  -x, --x <X>         x position (0 is left)
-  -y, --y <Y>         y position (0 is top)
-  -c, --cols <COLS>   Number of cols to fit the preview in
-  -r, --rows <ROWS>   Number of rows to fit the preview in
-  -u, --upscale       Upscale image if needed
-  -s, --static        Only show first frame of GIFs
-  -l, --loop          Loop GIFs infinitely
-      --load <ID>     Load image with the given id (kitty only)
-      --display <ID>  Display image with the given id (kitty only)
-      --clear <ID>    Clear image with the given id (0 for all) (kitty only)
-  -f, --force         Do not check for protocol support
-  -h, --help          Print help
-  -V, --version       Print version
+  -x, --x <X>                x position (0 is left)
+  -y, --y <Y>                y position (0 is top)
+  -c, --cols <COLS>          Number of cols to fit the preview in
+  -r, --rows <ROWS>          Number of rows to fit the preview in
+  -u, --upscale              Upscale image if needed
+  -s, --static               Only show first frame of GIFs
+  -l, --loop                 Loop GIFs infinitely
+  -p, --protocol <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
+      --load <ID>            Load image with the given id (kitty only)
+      --display <ID>         Display image with the given id (kitty only)
+      --clear <ID>           Clear image with the given id (0 for all) (kitty only)
+  -h, --help                 Print help
+  -V, --version              Print version
 ```
 
 ## Progress

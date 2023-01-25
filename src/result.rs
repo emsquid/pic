@@ -6,7 +6,6 @@ pub enum Error {
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
     Ctrlc(ctrlc::Error),
-    ProtocolSupport(String),
 }
 
 impl std::fmt::Display for Error {
@@ -18,7 +17,6 @@ impl std::fmt::Display for Error {
             Error::ImageSize(err) => write!(f, "Image size error: {err}"),
             Error::Tempfile(err) => write!(f, "Tempfile error: {err}"),
             Error::Ctrlc(err) => write!(f, "CTRL-C error: {err}"),
-            Error::ProtocolSupport(err) => write!(f, "Protocol error: {err}"),
         }
     }
 }
