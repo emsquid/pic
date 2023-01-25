@@ -17,6 +17,7 @@ With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/ki
     * `--upscale` option to preview image at full wanted size if needed
     * `--force` option to bypass protocol support
     * `--static` option to only show first frame of GIFs
+    * `--loop` option to loop GIFs infinitely
 
 ## Installation
 
@@ -56,9 +57,10 @@ Options:
   -r, --rows <ROWS>   Number of rows to fit the preview in
   -u, --upscale       Upscale image if needed
   -s, --static        Only show first frame of GIFs
-  -l, --load <ID>     Load image with the given id (kitty only)
-  -d, --display <ID>  Display image with the given id (kitty only)
-  -c, --clear <ID>    Clear image with the given id (0 for all) (kitty only)
+  -l, --loop          Loop GIFs infinitely
+      --load <ID>     Load image with the given id (kitty only)
+      --display <ID>  Display image with the given id (kitty only)
+      --clear <ID>    Clear image with the given id (0 for all) (kitty only)
   -f, --force         Do not check for protocol support
   -h, --help          Print help
   -V, --version       Print version
