@@ -9,7 +9,7 @@ mod kitty;
 mod sixel;
 
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    match Protocol::choose_protocol(options) {
+    match Protocol::choose(options) {
         Protocol::Kitty => kitty::preview(stdout, options),
         Protocol::Iterm => iterm::preview(stdout, options),
         Protocol::Sixel => sixel::preview(stdout, options),

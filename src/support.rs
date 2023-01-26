@@ -4,10 +4,9 @@ use console::{Key, Term};
 use std::{env, io::Write};
 
 // add supported Terminals based on their eventual environment variables
-const KITTY_TERMS: [&str; 1] = ["xterm-kitty"];
-const KITTY_PROGRAMS: [&str; 1] = ["WezTerm"];
+const KITTY_SUPPORTED: [&str; 2] = ["xterm-kitty", "WezTerm"];
 
-const SIXEL_TERMS: [&str; 7] = [
+const SIXEL_SUPPORTED: [&str; 7] = [
     "xterm-256color",
     "xterm",
     "yaft-256color",
@@ -17,8 +16,7 @@ const SIXEL_TERMS: [&str; 7] = [
     "mlterm",
 ];
 
-const ITERM_PROGRAMS: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
-const ITERM_LCS: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
+const ITERM_SUPPORTED: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Protocol {
@@ -29,36 +27,7 @@ pub enum Protocol {
 }
 
 impl Protocol {
-    fn support_kitty() -> bool {
-        // term check
-        let term = env::var("TERM").unwrap_or_default();
-        let program = env::var("TERM_PROGRAM").unwrap_or_default();
-        // attrs check (send a kitty request)
-        let attrs = vec![vec!["OK"]];
-        let kitty_command = b"\x1b_Gi=31,s=1,v=1,a=q,t=d,f=24;AAAA\x1b\\";
-
-        (find_match(&KITTY_TERMS, &term) || find_match(&KITTY_PROGRAMS, &program))
-            && check_attributes(attrs, Some(kitty_command)).unwrap_or(false)
-    }
-
-    fn support_sixel() -> bool {
-        // term check
-        let term = env::var("TERM").unwrap_or_default();
-        // attrs check (4 is for sixel support)
-        let attrs = vec![vec![";4;", ";4c"]];
-
-        find_match(&SIXEL_TERMS, &term) && check_attributes(attrs, None).unwrap_or(false)
-    }
-
-    fn support_iterm() -> bool {
-        // term check
-        let program = env::var("TERM_PROGRAM").unwrap_or_default();
-        let lc = env::var("LC_TERMINAL").unwrap_or_default();
-
-        find_match(&ITERM_PROGRAMS, &program) || find_match(&ITERM_LCS, &lc)
-    }
-
-    pub fn choose_protocol(options: &Options) -> Self {
+    pub fn choose(options: &Options) -> Self {
         if let Some(protocol) = options.protocol {
             protocol
         } else if Protocol::support_kitty() {
@@ -70,6 +39,36 @@ impl Protocol {
         } else {
             Protocol::Blocks
         }
+    }
+
+    fn support_kitty() -> bool {
+        // Term check
+        let term = env::var("TERM").unwrap_or_default();
+        let program = env::var("TERM_PROGRAM").unwrap_or_default();
+        // Attrs check (send a kitty request)
+        let attrs = vec![vec!["OK"]];
+        let kitty_command = b"\x1b_Gi=31,s=1,v=1,a=q,t=d,f=24;AAAA\x1b\\";
+
+        (find_match(&KITTY_SUPPORTED, &term) || find_match(&KITTY_SUPPORTED, &program))
+            && check_primary_attributes(attrs, Some(kitty_command)).unwrap_or(false)
+    }
+
+    fn support_sixel() -> bool {
+        // Term check
+        let term = env::var("TERM").unwrap_or_default();
+        // Attrs check (4 is for sixel support)
+        let attrs = vec![vec![";4;", ";4c"]];
+
+        find_match(&SIXEL_SUPPORTED, &term)
+            && check_primary_attributes(attrs, None).unwrap_or(false)
+    }
+
+    fn support_iterm() -> bool {
+        // Term check
+        let program = env::var("TERM_PROGRAM").unwrap_or_default();
+        let lc = env::var("LC_TERMINAL").unwrap_or_default();
+
+        find_match(&ITERM_SUPPORTED, &program) || find_match(&ITERM_SUPPORTED, &lc)
     }
 }
 
@@ -88,7 +87,7 @@ pub fn find_match(list: &[&str], var: &str) -> bool {
     list.iter().any(|s| var.contains(s))
 }
 
-pub fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> Result<bool> {
+pub fn check_primary_attributes(attrs: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> Result<bool> {
     let mut stdout = Term::stdout();
     let command = [subcommand.unwrap_or_default(), b"\x1b[c"].concat();
     stdout.write_all(&command)?;
@@ -106,7 +105,7 @@ pub fn check_attributes(attr_groups: Vec<Vec<&str>>, subcommand: Option<&[u8]>) 
     }
 
     // check if each groups of attrs has at least a match
-    Ok(attr_groups.iter().all(|group| find_match(group, &response)))
+    Ok(attrs.iter().all(|group| find_match(group, &response)))
 }
 
 pub fn truecolor() -> bool {
