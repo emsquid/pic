@@ -5,7 +5,36 @@ use std::{
     fs::File,
     io::{Error, Write},
     path::PathBuf,
+    sync::mpsc::{self, Receiver, Sender},
 };
+
+pub struct CtrlcHandler {
+    pub sender: Sender<bool>,
+    pub receiver: Receiver<bool>,
+}
+
+impl CtrlcHandler {
+    pub fn new() -> Result<Self> {
+        let (ctrlc_tx, preview_rx) = mpsc::channel::<bool>();
+        let (preview_tx, ctrlc_rx) = mpsc::channel::<bool>();
+
+        ctrlc::set_handler(move || {
+            ctrlc_tx
+                .send(true)
+                .expect("CTRL-C error: Unable to send message");
+
+            ctrlc_rx
+                .recv()
+                .expect("CTRL-C error: No response from main thread");
+            std::process::exit(0);
+        })?;
+
+        Ok(Self {
+            sender: preview_tx,
+            receiver: preview_rx,
+        })
+    }
+}
 
 #[derive(Clone, Default, Debug)]
 pub struct TermSize {
@@ -142,12 +171,6 @@ pub fn show_cursor(stdout: &mut impl Write) -> Result {
 }
 
 pub fn hide_cursor(stdout: &mut impl Write) -> Result {
-    // show cursor back on ctrlc
-    ctrlc::set_handler(|| {
-        show_cursor(&mut std::io::stdout()).expect("IO error: Couldn't show cursor");
-        std::process::exit(0);
-    })?;
-
     stdout.write_all(b"\x1b[?25l")?;
     stdout.flush()?;
     Ok(())

@@ -5,6 +5,7 @@ pub enum Error {
     Sixel(sixel_rs::status::Error),
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
+    Channel(std::sync::mpsc::SendError<bool>),
     Ctrlc(ctrlc::Error),
 }
 
@@ -16,6 +17,7 @@ impl std::fmt::Display for Error {
             Error::Sixel(err) => write!(f, "Sixel error: {err:#?}"),
             Error::ImageSize(err) => write!(f, "Image size error: {err}"),
             Error::Tempfile(err) => write!(f, "Tempfile error: {err}"),
+            Error::Channel(err) => write!(f, "Channel error: {err}"),
             Error::Ctrlc(err) => write!(f, "CTRL-C error: {err}"),
         }
     }
@@ -49,6 +51,12 @@ impl From<imagesize::ImageError> for Error {
 impl From<tempfile::PersistError> for Error {
     fn from(err: tempfile::PersistError) -> Self {
         Error::Tempfile(err)
+    }
+}
+
+impl From<std::sync::mpsc::SendError<bool>> for Error {
+    fn from(err: std::sync::mpsc::SendError<bool>) -> Self {
+        Error::Channel(err)
     }
 }
 

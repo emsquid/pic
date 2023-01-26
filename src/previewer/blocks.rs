@@ -1,7 +1,8 @@
 use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{
-    ansi_color, fit_in_bounds, move_cursor, move_cursor_up, pixel_is_transparent, resize, TermSize,
+    ansi_color, fit_in_bounds, hide_cursor, move_cursor, move_cursor_up, pixel_is_transparent,
+    resize, show_cursor, CtrlcHandler, TermSize,
 };
 use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, DynamicImage, ImageFormat};
@@ -98,10 +99,17 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             })
             .collect();
 
-        loop {
+        let handler = CtrlcHandler::new()?;
+        'preview: loop {
             for (i, (delay, frame)) in frames.iter().enumerate() {
                 display_frame(stdout, &frame, options)?;
                 thread::sleep(*delay);
+
+                if handler.receiver.try_recv().is_ok() {
+                    show_cursor(stdout)?;
+                    handler.sender.send(true)?;
+                    break 'preview;
+                }
 
                 if options.gif_loop || i < frames.len() - 1 {
                     move_cursor_up(stdout, frame.height() / 2 - 1)?;
@@ -109,7 +117,7 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             }
 
             if !options.gif_loop {
-                break;
+                break 'preview;
             }
         }
 
@@ -122,8 +130,11 @@ pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
+    // prevents cursor flickering
+    hide_cursor(stdout)?;
     match image::guess_format(&buffer)? {
-        ImageFormat::Gif => display_gif(stdout, &buffer, options),
-        _ => display_image(stdout, &buffer, options),
+        ImageFormat::Gif => display_gif(stdout, &buffer, options)?,
+        _ => display_image(stdout, &buffer, options)?,
     }
+    show_cursor(stdout)
 }
