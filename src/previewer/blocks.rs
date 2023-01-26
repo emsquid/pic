@@ -100,31 +100,38 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             })
             .collect();
 
+        // Prevents cursor flickering
         let handler = CtrlcHandler::new()?;
+        hide_cursor(stdout)?;
 
-        'preview: loop {
-            for (i, (delay, frame)) in frames.iter().enumerate() {
+        // We need to move cursor up, except on very first frame
+        let mut first_frame = true;
+
+        'gif: loop {
+            for (delay, frame) in frames.iter() {
                 select! {
                     default(*delay) => {
-                        if options.gif_loop || i > 0 {
+                        if !first_frame {
                             move_cursor_up(stdout, frame.height() / 2 - 1)?;
+                        } else {
+                            first_frame = false;
                         }
 
                         display_frame(stdout, &frame, options)?;
                     },
                     recv(handler.receiver) -> _ => {
-                        show_cursor(stdout)?;
-                        handler.sender.send(true)?;
-                        break 'preview;
+                        break 'gif;
                     }
                 }
             }
 
             if !options.gif_loop {
-                break 'preview;
+                break 'gif;
             }
         }
 
+        show_cursor(stdout)?;
+        handler.sender.send(true)?;
         Ok(())
     }
 }
@@ -134,11 +141,8 @@ pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
-    // prevents cursor flickering
-    hide_cursor(stdout)?;
     match image::guess_format(&buffer)? {
-        ImageFormat::Gif => display_gif(stdout, &buffer, options)?,
-        _ => display_image(stdout, &buffer, options)?,
+        ImageFormat::Gif => display_gif(stdout, &buffer, options),
+        _ => display_image(stdout, &buffer, options),
     }
-    show_cursor(stdout)
 }
