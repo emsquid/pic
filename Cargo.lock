@@ -552,6 +552,7 @@ dependencies = [
  "base64",
  "clap",
  "console",
+ "crossbeam-channel",
  "ctrlc",
  "image",
  "imagesize",

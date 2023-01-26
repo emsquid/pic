@@ -1,11 +1,11 @@
 use crate::{result::Result, support};
 use ansi_colours::ansi256_from_rgb;
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use image::{codecs::png::PngEncoder, DynamicImage, ImageEncoder};
 use std::{
     fs::File,
     io::{Error, Write},
     path::PathBuf,
-    sync::mpsc::{self, Receiver, Sender},
 };
 
 pub struct CtrlcHandler {
@@ -15,8 +15,9 @@ pub struct CtrlcHandler {
 
 impl CtrlcHandler {
     pub fn new() -> Result<Self> {
-        let (ctrlc_tx, preview_rx) = mpsc::channel::<bool>();
-        let (preview_tx, ctrlc_rx) = mpsc::channel::<bool>();
+        // We use two channels so that they can communicate
+        let (ctrlc_tx, preview_rx) = unbounded();
+        let (preview_tx, ctrlc_rx) = unbounded();
 
         ctrlc::set_handler(move || {
             ctrlc_tx
@@ -89,7 +90,7 @@ impl TermSize {
     }
 }
 
-pub fn get_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
+pub fn create_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
         .tempfile_in("/tmp/")?

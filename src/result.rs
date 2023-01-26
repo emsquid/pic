@@ -5,7 +5,7 @@ pub enum Error {
     Sixel(sixel_rs::status::Error),
     ImageSize(imagesize::ImageError),
     Tempfile(tempfile::PersistError),
-    Channel(std::sync::mpsc::SendError<bool>),
+    Channel(crossbeam_channel::SendError<bool>),
     Ctrlc(ctrlc::Error),
 }
 
@@ -54,8 +54,8 @@ impl From<tempfile::PersistError> for Error {
     }
 }
 
-impl From<std::sync::mpsc::SendError<bool>> for Error {
-    fn from(err: std::sync::mpsc::SendError<bool>) -> Self {
+impl From<crossbeam_channel::SendError<bool>> for Error {
+    fn from(err: crossbeam_channel::SendError<bool>) -> Self {
         Error::Channel(err)
     }
 }

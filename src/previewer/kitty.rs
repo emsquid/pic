@@ -1,6 +1,6 @@
 use crate::options::Options;
 use crate::result::Result;
-use crate::utils::{fit_in_bounds, get_temp_file, move_cursor, save_in_tmp_file};
+use crate::utils::{create_temp_file, fit_in_bounds, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
 use std::io::Write;
 
@@ -29,7 +29,7 @@ fn clear(stdout: &mut impl Write, id: u32, _options: &Options) -> Result {
 fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
     let image = image::open(&options.path)?.to_rgba8();
     let (width, height) = image.dimensions();
-    let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
+    let (mut tempfile, pathbuf) = create_temp_file(KITTY_PREFIX)?;
     save_in_tmp_file(image.as_raw(), &mut tempfile)?;
 
     let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
@@ -37,7 +37,7 @@ fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
 }
 
 fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Result {
-    let (mut tempfile, pathbuf) = get_temp_file(KITTY_PREFIX)?;
+    let (mut tempfile, pathbuf) = create_temp_file(KITTY_PREFIX)?;
     let (command, payload) = if let Some(id) = id {
         let image_size = imagesize::size(&options.path)?;
         let (width, height) = (image_size.width as u32, image_size.height as u32);

@@ -74,9 +74,10 @@ Help would be greatly appreciated
     * [ ] Make releases/packages (publish on crates.io)
 - Protocols support
     * [ ] Preview GIFs with Kitty protocol
-    * [x] Preview GIFs with Unicode blocks (needs improvements)
+    * [x] Preview GIFs with Unicode blocks
     * [ ] Work on handling transparency/GIFs with Sixel protocol (GIFs work but don't render well)
     * [ ] Improve protocol support checking (need to test in various terminal)
 - Miscellaneous
+    * [ ] Implement caching somehow
     * [ ] Show cooler error messages
     * [ ] Write tests (I guess I need to do that...)

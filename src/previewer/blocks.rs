@@ -4,11 +4,12 @@ use crate::utils::{
     ansi_color, fit_in_bounds, hide_cursor, move_cursor, move_cursor_up, pixel_is_transparent,
     resize, show_cursor, CtrlcHandler, TermSize,
 };
+use crossbeam_channel::select;
 use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, DynamicImage, ImageFormat};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::thread;
+// use std::thread;
 use std::time::Duration;
 
 const ANSI_CLEAR: &str = "\x1b[m";
@@ -89,7 +90,7 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             .iter()
             .map(|frame| {
                 let delay = Duration::from(frame.delay());
-                let image = &DynamicImage::ImageRgba8(frame.buffer().to_owned());
+                let image = &DynamicImage::ImageRgba8(frame.to_owned().into_buffer());
                 let (width, height) = (image.width(), image.height());
                 let (cols, rows) =
                     fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
@@ -100,19 +101,22 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             .collect();
 
         let handler = CtrlcHandler::new()?;
+
         'preview: loop {
             for (i, (delay, frame)) in frames.iter().enumerate() {
-                display_frame(stdout, &frame, options)?;
-                thread::sleep(*delay);
+                select! {
+                    default(*delay) => {
+                        if options.gif_loop || i > 0 {
+                            move_cursor_up(stdout, frame.height() / 2 - 1)?;
+                        }
 
-                if handler.receiver.try_recv().is_ok() {
-                    show_cursor(stdout)?;
-                    handler.sender.send(true)?;
-                    break 'preview;
-                }
-
-                if options.gif_loop || i < frames.len() - 1 {
-                    move_cursor_up(stdout, frame.height() / 2 - 1)?;
+                        display_frame(stdout, &frame, options)?;
+                    },
+                    recv(handler.receiver) -> _ => {
+                        show_cursor(stdout)?;
+                        handler.sender.send(true)?;
+                        break 'preview;
+                    }
                 }
             }
 
