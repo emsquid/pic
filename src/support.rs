@@ -50,7 +50,7 @@ impl Protocol {
         let kitty_command = b"\x1b_Gi=31,s=1,v=1,a=q,t=d,f=24;AAAA\x1b\\";
 
         (find_match(&KITTY_SUPPORTED, &term) || find_match(&KITTY_SUPPORTED, &program))
-            && check_primary_attributes(attrs, Some(kitty_command)).unwrap_or(false)
+            && check_primary_attributes(&attrs, Some(kitty_command)).unwrap_or(false)
     }
 
     fn support_sixel() -> bool {
@@ -60,7 +60,7 @@ impl Protocol {
         let attrs = vec![vec![";4;", ";4c"]];
 
         find_match(&SIXEL_SUPPORTED, &term)
-            && check_primary_attributes(attrs, None).unwrap_or(false)
+            && check_primary_attributes(&attrs, None).unwrap_or(false)
     }
 
     fn support_iterm() -> bool {
@@ -87,7 +87,7 @@ pub fn find_match(list: &[&str], var: &str) -> bool {
     list.iter().any(|s| var.contains(s))
 }
 
-pub fn check_primary_attributes(attrs: Vec<Vec<&str>>, subcommand: Option<&[u8]>) -> Result<bool> {
+pub fn check_primary_attributes(attrs: &[Vec<&str>], subcommand: Option<&[u8]>) -> Result<bool> {
     let mut stdout = Term::stdout();
     let command = [subcommand.unwrap_or_default(), b"\x1b[c"].concat();
     stdout.write_all(&command)?;
@@ -95,7 +95,7 @@ pub fn check_primary_attributes(attrs: Vec<Vec<&str>>, subcommand: Option<&[u8]>
 
     let mut response = String::new();
     // what if the terminal doesn't answer ?
-    while !response.contains("c") {
+    while !response.contains('c') {
         match stdout.read_key() {
             Ok(Key::Char(chr)) => response.push(chr),
             Ok(Key::UnknownEscSeq(esc)) => response.extend(esc),
@@ -110,8 +110,5 @@ pub fn check_primary_attributes(attrs: Vec<Vec<&str>>, subcommand: Option<&[u8]>
 
 pub fn truecolor() -> bool {
     let colorterm = env::var("COLORTERM").unwrap_or_default();
-    match colorterm.as_str() {
-        "truecolor" | "24bit" => true,
-        _ => false,
-    }
+    matches!(colorterm.as_str(), "truecolor" | "24bit")
 }
