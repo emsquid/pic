@@ -30,10 +30,10 @@ impl Protocol {
     pub fn choose(options: &Options) -> Self {
         if let Some(protocol) = options.protocol {
             protocol
-        } else if Protocol::support_kitty() {
-            Protocol::Kitty
         } else if Protocol::support_iterm() {
             Protocol::Iterm
+        } else if Protocol::support_kitty() {
+            Protocol::Kitty
         } else if Protocol::support_sixel() {
             Protocol::Sixel
         } else {
