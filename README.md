@@ -48,15 +48,15 @@ Blocks & Top quality previewing
 
 Wide choice of options
 
-![options](examples/options.mp4)
+![options](examples/options.gif)
 
 Really nice GIFs in iTerm
 
-![iterm](examples/iterm_gif.mp4)
+![iterm](examples/iterm.gif)
 
 And also nice in Blocks
 
-![gotcha](examples/blocks_gif.mp4)
+![gotcha](examples/blocks.gif)
 
 ## Command line usage
 
