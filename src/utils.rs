@@ -52,10 +52,10 @@ pub struct TermSize {
 impl TermSize {
     pub fn new(rows: u16, cols: u16, width: u16, height: u16) -> Self {
         Self {
-            rows: rows as u32,
-            cols: cols as u32,
-            width: width as u32,
-            height: height as u32,
+            rows: u32::from(rows),
+            cols: u32::from(cols),
+            width: u32::from(width),
+            height: u32::from(height),
         }
     }
 
@@ -236,23 +236,26 @@ pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
 }
 
 pub fn ansi_rgb(rgb: [u8; 4], bg: bool) -> String {
-    match bg {
-        false => format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
-        true => format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2]),
+    if bg {
+        format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2])
+    } else {
+        format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2])
     }
 }
 
 pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
     let index = ansi256_from_rgb((rgb[0], rgb[1], rgb[2]));
-    match bg {
-        false => format!("\x1b[38;5;{}m", index),
-        true => format!("\x1b[48;5;{}m", index),
+    if bg {
+        format!("\x1b[48;5;{index}m")
+    } else {
+        format!("\x1b[38;5;{index}m")
     }
 }
 
 pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
-    match support::truecolor() {
-        true => ansi_rgb(rgb, bg),
-        false => ansi_indexed(rgb, bg),
+    if support::truecolor() {
+        ansi_rgb(rgb, bg)
+    } else {
+        ansi_indexed(rgb, bg)
     }
 }

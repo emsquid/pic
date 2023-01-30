@@ -11,6 +11,6 @@ fn main() {
     let options = options::Options::parse();
 
     if let Err(err) = previewer::preview(&mut stdout, &options) {
-        eprintln!("{err}")
+        eprintln!("{err}");
     };
 }

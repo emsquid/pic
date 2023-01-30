@@ -46,7 +46,7 @@ fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Option
                         (true, true) => write_color_block(stdout, " ", "", "")?,
                         (true, false) => {
                             let ansi_fg = ansi_color(rgb_bg, false);
-                            write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?
+                            write_color_block(stdout, TOP_BLOCK, "", &ansi_fg)?;
                         }
                         (false, true) => {
                             let ansi_fg = ansi_color(rgb_fg, false);
@@ -62,10 +62,10 @@ fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Option
             }
         }
 
-        if !is_bg {
-            stdout.write_all(b"\n")?;
-        } else {
+        if is_bg {
             move_cursor(stdout, options.x, None)?;
+        } else {
+            stdout.write_all(b"\n")?;
         };
     }
 
@@ -90,13 +90,13 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             .iter()
             .map(|frame| {
                 let delay = Duration::from(frame.delay());
-                let image = &DynamicImage::ImageRgba8(frame.to_owned().into_buffer());
+                let image = &DynamicImage::ImageRgba8(frame.clone().into_buffer());
                 let (width, height) = (image.width(), image.height());
                 let (cols, rows) =
                     fit_in_bounds(width, height, options.cols, options.rows, options.upscale)
                         .unwrap_or_default();
 
-                (delay, resize(&image, cols, rows * 2))
+                (delay, resize(image, cols, rows * 2))
             })
             .collect();
 
@@ -111,13 +111,13 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
             for (delay, frame) in frames.iter() {
                 select! {
                     default(*delay) => {
-                        if !first_frame {
-                            move_cursor_up(stdout, frame.height() / 2 - 1)?;
-                        } else {
+                        if first_frame {
                             first_frame = false;
+                        } else {
+                            move_cursor_up(stdout, frame.height() / 2 - 1)?;
                         }
 
-                        display_frame(stdout, &frame, options)?;
+                        display_frame(stdout, frame, options)?;
                     },
                     recv(handler.receiver) -> _ => {
                         break 'gif;

@@ -17,12 +17,12 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
     };
 
     let encoder = Encoder::new()?;
-    encoder.set_width(Pixel((cols * col_size) as u64))?;
-    encoder.set_height(Pixel((rows * row_size) as u64))?;
+    encoder.set_width(Pixel(u64::from(cols * col_size)))?;
+    encoder.set_height(Pixel(u64::from(rows * row_size)))?;
     encoder.set_resampling(ResampleMethod::Nearest)?;
     encoder.set_encode_policy(EncodePolicy::Fast)?;
     if options.gif_static {
-        encoder.use_static()?
+        encoder.use_static()?;
     };
 
     move_cursor(stdout, options.x, options.y)?;
