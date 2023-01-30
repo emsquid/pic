@@ -2,6 +2,7 @@ use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{create_temp_file, fit_in_bounds, move_cursor, save_in_tmp_file};
 use base64::{engine::general_purpose, Engine as _};
+use image::io::Reader;
 use std::io::Write;
 
 const KITTY_PREFIX: &str = "pic.tty-graphics-protocol.";
@@ -27,7 +28,10 @@ fn clear(stdout: &mut impl Write, id: u32, _options: &Options) -> Result {
 }
 
 fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
-    let image = image::open(&options.path)?.to_rgba8();
+    let image = Reader::open(&options.path)?
+        .with_guessed_format()?
+        .decode()?
+        .to_rgba8();
     let (width, height) = image.dimensions();
     let (mut tempfile, pathbuf) = create_temp_file(KITTY_PREFIX)?;
     save_in_tmp_file(image.as_raw(), &mut tempfile)?;
@@ -47,7 +51,10 @@ fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Resul
         let command = format!("a=p,c={cols},r={rows},i={id},q=2");
         (command, None)
     } else {
-        let image = image::open(&options.path)?.to_rgba8();
+        let image = Reader::open(&options.path)?
+            .with_guessed_format()?
+            .decode()?
+            .to_rgba8();
         let (width, height) = image.dimensions();
         let (cols, rows) =
             fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
