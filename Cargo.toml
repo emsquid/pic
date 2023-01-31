@@ -12,6 +12,7 @@ license = "MIT"
 ansi_colours = { version = "1.2.1", default-features = false }
 base64 = "0.21.0"
 clap = { version = "4.1.1", features = ["derive"] }
+wild = "2.1.0"
 console = { version = "0.15.5", default-features = false }
 crossbeam-channel = "0.5.6"
 ctrlc = "3.2.4"
