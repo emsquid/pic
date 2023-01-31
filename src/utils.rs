@@ -177,6 +177,14 @@ pub fn hide_cursor(stdout: &mut impl Write) -> Result {
     Ok(())
 }
 
+pub fn handle_spacing(stdout: &mut impl Write, spacing: Option<u32>) -> Result {
+    if let Some(spacing) = spacing {
+        stdout.write_all(&b"\n".repeat(spacing as usize))?;
+        stdout.flush()?;
+    }
+    Ok(())
+}
+
 pub fn fit_in_bounds(
     width: u32,
     height: u32,

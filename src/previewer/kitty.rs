@@ -1,6 +1,8 @@
 use crate::options::Options;
 use crate::result::Result;
-use crate::utils::{create_temp_file, fit_in_bounds, move_cursor, save_in_tmp_file};
+use crate::utils::{
+    create_temp_file, fit_in_bounds, handle_spacing, move_cursor, save_in_tmp_file,
+};
 use base64::{engine::general_purpose, Engine as _};
 use image::io::Reader;
 use std::io::Write;
@@ -74,7 +76,6 @@ fn display(
     move_cursor(stdout, options.x, options.y)?;
     send_graphics_command(stdout, &command, payload)?;
 
-    stdout.write_all(b"\n")?;
     stdout.flush()?;
     Ok(())
 }
@@ -87,10 +88,12 @@ pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options)
     match (options.load, options.display) {
         (Some(id_load), Some(id_display)) => {
             load(stdout, id_load, image_path, options)?;
-            display(stdout, Some(id_display), image_path, options)
+            display(stdout, Some(id_display), image_path, options)?;
         }
-        (Some(id), None) => load(stdout, id, image_path, options),
-        (None, Some(id)) => display(stdout, Some(id), image_path, options),
-        (None, None) => display(stdout, None, image_path, options),
+        (Some(id), None) => load(stdout, id, image_path, options)?,
+        (None, Some(id)) => display(stdout, Some(id), image_path, options)?,
+        (None, None) => display(stdout, None, image_path, options)?,
     }
+    handle_spacing(stdout, options.spacing)?;
+    Ok(())
 }

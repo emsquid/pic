@@ -24,6 +24,9 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
+    /// Spacing between images if more than one file is provided
+    #[arg(long)]
+    pub spacing: Option<u32>,
     /// Upscale image if needed
     #[arg(short, long)]
     pub upscale: bool,

@@ -1,8 +1,8 @@
 use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{
-    ansi_color, fit_in_bounds, hide_cursor, move_cursor, move_cursor_up, pixel_is_transparent,
-    resize, show_cursor, CtrlcHandler, TermSize,
+    ansi_color, fit_in_bounds, handle_spacing, hide_cursor, move_cursor, move_cursor_up,
+    pixel_is_transparent, resize, show_cursor, CtrlcHandler, TermSize,
 };
 use crossbeam_channel::select;
 use image::codecs::gif::GifDecoder;
@@ -143,7 +143,10 @@ pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options)
     image.read_to_end(&mut buffer)?;
 
     match image::guess_format(&buffer)? {
-        ImageFormat::Gif => display_gif(stdout, &buffer, options),
-        _ => display_image(stdout, &buffer, options),
+        ImageFormat::Gif => display_gif(stdout, &buffer, options)?,
+        _ => display_image(stdout, &buffer, options)?,
     }
+
+    handle_spacing(stdout, options.spacing)?;
+    Ok(())
 }
