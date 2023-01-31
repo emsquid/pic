@@ -84,6 +84,11 @@ Options:
   -V, --version              Print version
 ```
 
+## Notes 
+
+- `Sixel` protocol may require [libsixel](https://github.com/saitoha/libsixel) to be installed
+- `iTerm` protocol always loop GIFs, except if `--static` is specified
+
 ## Progress
 
 Help would be greatly appreciated
