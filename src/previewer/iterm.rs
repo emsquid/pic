@@ -5,13 +5,14 @@ use base64::{engine::general_purpose, Engine as _};
 use image::ImageFormat;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 
-fn display(stdout: &mut impl Write, options: &Options) -> Result {
-    let mut image = File::open(&options.path)?;
+fn display(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    let mut image = File::open(image_path)?;
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
-    let image_size = imagesize::size(&options.path)?;
+    let image_size = imagesize::size(image_path)?;
     let (width, height) = (image_size.width as u32, image_size.height as u32);
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
@@ -32,6 +33,6 @@ fn display(stdout: &mut impl Write, options: &Options) -> Result {
     Ok(())
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    display(stdout, options)
+pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    display(stdout, image_path, options)
 }

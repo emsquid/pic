@@ -4,6 +4,7 @@ use crate::utils::{create_temp_file, fit_in_bounds, move_cursor, save_in_tmp_fil
 use base64::{engine::general_purpose, Engine as _};
 use image::io::Reader;
 use std::io::Write;
+use std::path::PathBuf;
 
 const KITTY_PREFIX: &str = "pic.tty-graphics-protocol.";
 const PROTOCOL_START: &str = "\x1b_G";
@@ -27,8 +28,8 @@ fn clear(stdout: &mut impl Write, id: u32, _options: &Options) -> Result {
     }
 }
 
-fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
-    let image = Reader::open(&options.path)?
+fn load(stdout: &mut impl Write, id: u32, image_path: &PathBuf, _options: &Options) -> Result {
+    let image = Reader::open(image_path)?
         .with_guessed_format()?
         .decode()?
         .to_rgba8();
@@ -40,10 +41,15 @@ fn load(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
     send_graphics_command(stdout, &command, pathbuf.to_str())
 }
 
-fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Result {
+fn display(
+    stdout: &mut impl Write,
+    id: Option<u32>,
+    image_path: &PathBuf,
+    options: &Options,
+) -> Result {
     let (mut tempfile, pathbuf) = create_temp_file(KITTY_PREFIX)?;
     let (command, payload) = if let Some(id) = id {
-        let image_size = imagesize::size(&options.path)?;
+        let image_size = imagesize::size(image_path)?;
         let (width, height) = (image_size.width as u32, image_size.height as u32);
         let (cols, rows) =
             fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
@@ -51,7 +57,7 @@ fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Resul
         let command = format!("a=p,c={cols},r={rows},i={id},q=2");
         (command, None)
     } else {
-        let image = Reader::open(&options.path)?
+        let image = Reader::open(image_path)?
             .with_guessed_format()?
             .decode()?
             .to_rgba8();
@@ -73,18 +79,18 @@ fn display(stdout: &mut impl Write, id: Option<u32>, options: &Options) -> Resul
     Ok(())
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
+pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
     if let Some(id) = options.clear {
         clear(stdout, id, options)?;
     }
 
     match (options.load, options.display) {
         (Some(id_load), Some(id_display)) => {
-            load(stdout, id_load, options)?;
-            display(stdout, Some(id_display), options)
+            load(stdout, id_load, image_path, options)?;
+            display(stdout, Some(id_display), image_path, options)
         }
-        (Some(id), None) => load(stdout, id, options),
-        (None, Some(id)) => display(stdout, Some(id), options),
-        (None, None) => display(stdout, None, options),
+        (Some(id), None) => load(stdout, id, image_path, options),
+        (None, Some(id)) => display(stdout, Some(id), image_path, options),
+        (None, None) => display(stdout, None, image_path, options),
     }
 }

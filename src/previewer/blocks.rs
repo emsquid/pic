@@ -9,6 +9,7 @@ use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, DynamicImage, ImageFormat};
 use std::fs::File;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 // use std::thread;
 use std::time::Duration;
 
@@ -108,7 +109,7 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
         let mut first_frame = true;
 
         'gif: loop {
-            for (delay, frame) in frames.iter() {
+            for (delay, frame) in &frames {
                 select! {
                     default(*delay) => {
                         if first_frame {
@@ -136,8 +137,8 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
     }
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    let mut image = File::open(&options.path)?;
+pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    let mut image = File::open(image_path)?;
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
