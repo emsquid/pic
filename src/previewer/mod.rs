@@ -8,9 +8,17 @@ mod iterm;
 mod kitty;
 mod sixel;
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
+pub fn preview(stdout: &mut impl Write, options: &mut Options) -> Result {
     let protocol = Protocol::choose(options);
-    for image_path in &options.path {
+    let image_paths = options.path.clone();
+    // If there is more than one path, render `-y` flag useless
+    // TODO: Does not work if the only path is a directory
+    if options.y.is_some() && image_paths.len() > 1 {
+        options.y = None;
+        // Notify about spacing flag
+    }
+
+    for image_path in &image_paths {
         if image_path.is_dir() {
             continue;
         }
