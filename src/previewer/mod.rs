@@ -11,6 +11,10 @@ mod sixel;
 pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
     let protocol = Protocol::choose(options);
     for image_path in &options.path {
+        if image_path.is_dir() {
+            continue;
+        }
+
         match protocol {
             Protocol::Kitty => kitty::preview(stdout, image_path, options)?,
             Protocol::Iterm => iterm::preview(stdout, image_path, options)?,
