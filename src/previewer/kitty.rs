@@ -17,6 +17,7 @@ fn send_graphics_command(stdout: &mut impl Write, command: &str, payload: Option
     let command = format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}");
 
     stdout.write_all(command.as_bytes())?;
+    stdout.write_all(b"\n")?;
 
     stdout.flush()?;
     Ok(())
@@ -67,16 +68,14 @@ fn display(
         let (cols, rows) =
             fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
         save_in_tmp_file(image.as_raw(), &mut tempfile)?;
-        drop(tempfile);
 
-        let command = format!("a=T,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",);
+        let command = format!("a=T,I=31,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",);
         (command, pathbuf.to_str())
     };
 
     move_cursor(stdout, options.x, options.y)?;
     send_graphics_command(stdout, &command, payload)?;
 
-    stdout.flush()?;
     Ok(())
 }
 

@@ -93,7 +93,8 @@ impl TermSize {
 pub fn create_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
-        .tempfile_in("/tmp/")?
+        .rand_bytes(1)
+        .tempfile()?
         .keep()?;
 
     Ok((tempfile, pathbuf))
