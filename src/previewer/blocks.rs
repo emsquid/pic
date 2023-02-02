@@ -1,14 +1,15 @@
 use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{
-    ansi_color, fit_in_bounds, hide_cursor, move_cursor, move_cursor_up, pixel_is_transparent,
-    resize, show_cursor, CtrlcHandler, TermSize,
+    ansi_color, fit_in_bounds, handle_spacing, hide_cursor, move_cursor, move_cursor_up,
+    pixel_is_transparent, resize, show_cursor, CtrlcHandler, TermSize,
 };
 use crossbeam_channel::select;
 use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, DynamicImage, ImageFormat};
 use std::fs::File;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 // use std::thread;
 use std::time::Duration;
 
@@ -108,7 +109,7 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
         let mut first_frame = true;
 
         'gif: loop {
-            for (delay, frame) in frames.iter() {
+            for (delay, frame) in &frames {
                 select! {
                     default(*delay) => {
                         if first_frame {
@@ -136,13 +137,16 @@ fn display_gif(stdout: &mut impl Write, buffer: &[u8], options: &Options) -> Res
     }
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    let mut image = File::open(&options.path)?;
+pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    let mut image = File::open(image_path)?;
     let mut buffer = Vec::new();
     image.read_to_end(&mut buffer)?;
 
     match image::guess_format(&buffer)? {
-        ImageFormat::Gif => display_gif(stdout, &buffer, options),
-        _ => display_image(stdout, &buffer, options),
+        ImageFormat::Gif => display_gif(stdout, &buffer, options)?,
+        _ => display_image(stdout, &buffer, options)?,
     }
+
+    handle_spacing(stdout, options.spacing)?;
+    Ok(())
 }

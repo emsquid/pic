@@ -1,12 +1,13 @@
 use crate::options::Options;
 use crate::result::Result;
-use crate::utils::{fit_in_bounds, move_cursor, TermSize};
+use crate::utils::{fit_in_bounds, handle_spacing, move_cursor, TermSize};
 use sixel_rs::encoder::Encoder;
 use sixel_rs::optflags::{EncodePolicy, ResampleMethod, SizeSpecification::Pixel};
 use std::io::Write;
+use std::path::PathBuf;
 
-pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
-    let image_size = imagesize::size(&options.path)?;
+pub fn display(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    let image_size = imagesize::size(image_path)?;
     let (width, height) = (image_size.width as u32, image_size.height as u32);
     let (cols, rows) = fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
 
@@ -26,12 +27,14 @@ pub fn display(stdout: &mut impl Write, options: &Options) -> Result {
     };
 
     move_cursor(stdout, options.x, options.y)?;
-    encoder.encode_file(&options.path)?;
-
+    encoder.encode_file(image_path)?;
     stdout.flush()?;
+
     Ok(())
 }
 
-pub fn preview(stdout: &mut impl Write, options: &Options) -> Result {
-    display(stdout, options)
+pub fn preview(stdout: &mut impl Write, image_path: &PathBuf, options: &Options) -> Result {
+    display(stdout, image_path, options)?;
+    handle_spacing(stdout, options.spacing)?;
+    Ok(())
 }

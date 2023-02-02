@@ -1,13 +1,17 @@
 use crate::support::Protocol;
-use clap::Parser;
+use clap::{arg, command, Parser};
 use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Options {
-    /// Image to preview
-    pub path: PathBuf,
+    /// Image(s) to preview
+    #[arg(num_args(1..))]
+    pub path: Vec<PathBuf>,
 
+    /// Previewing protocol to use
+    #[arg(short, long)]
+    pub protocol: Option<Protocol>,
     /// x position (0 is left)
     #[arg(short, long)]
     pub x: Option<u32>,
@@ -20,18 +24,19 @@ pub struct Options {
     /// Number of rows to fit the preview in
     #[arg(short, long)]
     pub rows: Option<u32>,
+    /// Spacing between images if more than one file is provided
+    #[arg(long)]
+    pub spacing: Option<u32>,
     /// Upscale image if needed
     #[arg(short, long)]
     pub upscale: bool,
     /// Only show first frame of GIFs
-    #[arg(short = 's', long = "static")]
+    #[arg(short = 's', long = "static", conflicts_with("gif_loop"))]
     pub gif_static: bool,
     /// Loop GIFs infinitely
     #[arg(short = 'l', long = "loop")]
     pub gif_loop: bool,
-    /// Previewing protocol to use
-    #[arg(short, long)]
-    pub protocol: Option<Protocol>,
+
     /// Load image with the given id (kitty only)
     #[arg(long, value_name = "ID")]
     pub load: Option<u32>,

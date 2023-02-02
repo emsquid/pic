@@ -93,7 +93,8 @@ impl TermSize {
 pub fn create_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
-        .tempfile_in("/tmp/")?
+        .rand_bytes(1)
+        .tempfile()?
         .keep()?;
 
     Ok((tempfile, pathbuf))
@@ -174,6 +175,14 @@ pub fn show_cursor(stdout: &mut impl Write) -> Result {
 pub fn hide_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[?25l")?;
     stdout.flush()?;
+    Ok(())
+}
+
+pub fn handle_spacing(stdout: &mut impl Write, spacing: Option<u32>) -> Result {
+    if let Some(spacing) = spacing {
+        stdout.write_all(&b"\n".repeat(spacing as usize))?;
+        stdout.flush()?;
+    }
     Ok(())
 }
 
