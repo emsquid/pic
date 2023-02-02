@@ -69,7 +69,7 @@ fn display(
             fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
         save_in_tmp_file(image.as_raw(), &mut tempfile)?;
 
-        let command = format!("a=T,I=31,t=t,f=32,s={width},v={height},c={cols},r={rows},q=2",);
+        let command = format!("a=T,t=t,I=13,f=32,s={width},v={height},c={cols},r={rows},q=2",);
         (command, pathbuf.to_str())
     };
 
