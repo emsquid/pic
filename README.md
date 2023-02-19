@@ -1,6 +1,6 @@
-# PIC 📷
+# CIP 📷
 
-PIC (**P**review **I**mage in **C**LI) is a lightweight Rust tool to preview images in your terminal!
+CIP (**C**LI **I**mage **P**reviewer) is a lightweight Rust tool to preview images in your terminal!
 <br>
 With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/kitty/graphics-protocol/), [`Sixel`](https://saitoha.github.io/libsixel/), [`iTerm`](https://iterm2.com/documentation-images.html)) it works in several terminals, and can still use Unicode blocks in case your terminal isn't supported.
 
@@ -30,13 +30,13 @@ Prerequisites
 Command line instructions
 ```bash
 # Clone the repository
-git clone https://github.com/emsquid/pic
+git clone https://github.com/emsquid/cip
 
 # Build and install
-cargo install --path pic
+cargo install --path cip
 
 # Use freely
-pic Images/YourFavouriteImage.png --cols 13 ...
+cip Images/YourFavouriteImage.png --cols 13 ...
 ```
 
 ## Examples
@@ -61,9 +61,9 @@ And also nice in Blocks
 ## Command line usage
 
 ```
-Preview Image in CLI.
+CLI Image Previewer.
 
-Usage: pic [OPTIONS] <PATH>
+Usage: cip [OPTIONS] <PATH>
 
 Arguments:
   <PATH>  Image to preview
