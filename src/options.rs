@@ -47,3 +47,59 @@ pub struct Options {
     #[arg(long, value_name = "ID")]
     pub clear: Option<u32>,
 }
+
+impl Options {
+    pub fn new(path: Vec<PathBuf>) -> Self {
+        Self {
+            path,
+            protocol: None,
+            x: None,
+            y: None,
+            cols: None,
+            rows: None,
+            spacing: None,
+            upscale: false,
+            gif_static: false,
+            gif_loop: false,
+            load: None,
+            display: None,
+            clear: None,
+        }
+    }
+
+    pub fn set_position(&mut self, x: Option<u32>, y: Option<u32>) {
+        self.x = x;
+        self.y = y;
+    }
+
+    pub fn set_size(&mut self, cols: Option<u32>, rows: Option<u32>) {
+        self.cols = cols;
+        self.rows = rows;
+    }
+
+    pub fn set_spacing(&mut self, spacing: Option<u32>) {
+        self.spacing = spacing;
+    }
+
+    pub fn upscale(&mut self) {
+        self.upscale = true;
+    }
+
+    pub fn set_static(&mut self) {
+        self.gif_static = true;
+        self.gif_loop = false;
+    }
+
+    pub fn set_loop(&mut self) {
+        self.gif_static = false;
+        self.gif_loop = true;
+    }
+
+    pub fn set_kitty(&mut self, load: Option<u32>, display: Option<u32>, clear: Option<u32>) {
+        if self.protocol == Some(Protocol::Kitty) {
+            self.load = load;
+            self.display = display;
+            self.clear = clear;
+        }
+    }
+}

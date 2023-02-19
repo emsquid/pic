@@ -1,16 +1,11 @@
 use clap::Parser;
-
-mod options;
-mod previewer;
-mod result;
-mod support;
-mod utils;
+use pic;
 
 fn main() {
     let mut stdout = std::io::stdout();
-    let mut options = options::Options::parse_from(wild::args());
+    let mut options = pic::options::Options::parse_from(wild::args());
 
-    if let Err(err) = previewer::preview(&mut stdout, &mut options) {
+    if let Err(err) = pic::previewer::preview(&mut stdout, &mut options) {
         eprintln!("{err}");
     };
 }
