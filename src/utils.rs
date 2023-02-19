@@ -8,7 +8,7 @@ use std::{
     path::PathBuf,
 };
 
-pub struct CtrlcHandler {
+pub(crate) struct CtrlcHandler {
     pub sender: Sender<bool>,
     pub receiver: Receiver<bool>,
 }
@@ -37,6 +37,7 @@ impl CtrlcHandler {
     }
 }
 
+/// Useful handle for terminal size
 #[derive(Clone, Default, Debug)]
 pub struct TermSize {
     /// the amount of visible rows in the pty
@@ -59,6 +60,7 @@ impl TermSize {
         }
     }
 
+    /// Retrieve the size of a terminal cell
     pub fn get_cell_size(&self) -> Option<(u32, u32)> {
         if self.cols == 0 || self.rows == 0 {
             return None;
@@ -66,6 +68,7 @@ impl TermSize {
         Some((self.width / self.cols, self.height / self.rows))
     }
 
+    /// Create TermSize by getting the terminal size with an IOCTL
     pub fn from_ioctl() -> Result<Self> {
         // TODO: find a way to make that safe
         unsafe {
@@ -90,6 +93,7 @@ impl TermSize {
     }
 }
 
+/// Create a temporary file with the given prefix
 pub fn create_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     let (tempfile, pathbuf) = tempfile::Builder::new()
         .prefix(prefix)
@@ -100,12 +104,14 @@ pub fn create_temp_file(prefix: &str) -> Result<(File, PathBuf)> {
     Ok((tempfile, pathbuf))
 }
 
-pub fn save_in_tmp_file(buffer: &[u8], file: &mut File) -> Result {
+/// Save buffer in a temporary file
+pub fn save_in_temp_file(buffer: &[u8], file: &mut File) -> Result {
     file.write_all(buffer)?;
     file.flush()?;
     Ok(())
 }
 
+/// Save terminal cursor position
 #[allow(dead_code)]
 pub fn save_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[s")?;
@@ -113,6 +119,7 @@ pub fn save_cursor(stdout: &mut impl Write) -> Result {
     Ok(())
 }
 
+/// Restore terminal cursor position
 #[allow(dead_code)]
 pub fn restore_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[u")?;
@@ -120,6 +127,7 @@ pub fn restore_cursor(stdout: &mut impl Write) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor up
 #[allow(dead_code)]
 pub fn move_cursor_up(stdout: &mut impl Write, x: u32) -> Result {
     let binding = format!("\x1b[{}A", x + 1);
@@ -128,6 +136,7 @@ pub fn move_cursor_up(stdout: &mut impl Write, x: u32) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor down
 #[allow(dead_code)]
 pub fn move_cursor_down(stdout: &mut impl Write, x: u32) -> Result {
     let binding = format!("\x1b[{}B", x + 1);
@@ -136,6 +145,7 @@ pub fn move_cursor_down(stdout: &mut impl Write, x: u32) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor to the given column
 pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
     let binding = format!("\x1b[{}G", col + 1);
     stdout.write_all(binding.as_bytes())?;
@@ -143,6 +153,7 @@ pub fn move_cursor_column(stdout: &mut impl Write, col: u32) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor to the given row
 pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result {
     let binding = format!("\x1b[{}d", row + 1);
     stdout.write_all(binding.as_bytes())?;
@@ -150,6 +161,7 @@ pub fn move_cursor_row(stdout: &mut impl Write, row: u32) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor to the given position
 pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result {
     let binding = format!("\x1b[{};{}H", row + 1, col + 1);
     stdout.write_all(binding.as_bytes())?;
@@ -157,27 +169,31 @@ pub fn move_cursor_pos(stdout: &mut impl Write, col: u32, row: u32) -> Result {
     Ok(())
 }
 
+/// Move terminal cursor eventually given x and y
 pub fn move_cursor(stdout: &mut impl Write, col: Option<u32>, row: Option<u32>) -> Result {
     match (col, row) {
+        (None, None) => Ok(()),
         (Some(x), None) => move_cursor_column(stdout, x),
         (None, Some(y)) => move_cursor_row(stdout, y),
         (Some(x), Some(y)) => move_cursor_pos(stdout, x, y),
-        (None, None) => Ok(()),
     }
 }
 
+/// Show terminal cursor
 pub fn show_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[?25h")?;
     stdout.flush()?;
     Ok(())
 }
 
+/// Hide terminal cursor
 pub fn hide_cursor(stdout: &mut impl Write) -> Result {
     stdout.write_all(b"\x1b[?25l")?;
     stdout.flush()?;
     Ok(())
 }
 
+/// Handle spacing between images
 pub fn handle_spacing(stdout: &mut impl Write, spacing: Option<u32>) -> Result {
     if let Some(spacing) = spacing {
         stdout.write_all(&b"\n".repeat(spacing as usize))?;
@@ -186,6 +202,7 @@ pub fn handle_spacing(stdout: &mut impl Write, spacing: Option<u32>) -> Result {
     Ok(())
 }
 
+/// Fit an images into cols and rows bounds
 pub fn fit_in_bounds(
     width: u32,
     height: u32,
@@ -224,10 +241,12 @@ pub fn fit_in_bounds(
     }
 }
 
+/// Resize an image
 pub fn resize(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
     image.resize_exact(width, height, image::imageops::Triangle)
 }
 
+/// Convert an image to a png buffer
 /// image is mainly supposed to be a GIF here
 pub fn convert_to_image_buffer(image: &DynamicImage, width: u32, height: u32) -> Result<Vec<u8>> {
     let mut image_buffer = Vec::new();
@@ -240,10 +259,12 @@ pub fn convert_to_image_buffer(image: &DynamicImage, width: u32, height: u32) ->
     Ok(image_buffer)
 }
 
+/// Assess the transparency of a pixel
 pub fn pixel_is_transparent(rgb: [u8; 4]) -> bool {
     rgb[3] < 25
 }
 
+/// Convert rgb to ansi_rgb
 pub fn ansi_rgb(rgb: [u8; 4], bg: bool) -> String {
     if bg {
         format!("\x1b[48;2;{};{};{}m", rgb[0], rgb[1], rgb[2])
@@ -252,6 +273,7 @@ pub fn ansi_rgb(rgb: [u8; 4], bg: bool) -> String {
     }
 }
 
+/// Convert rgb to ansi_indexed
 pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
     let index = ansi256_from_rgb((rgb[0], rgb[1], rgb[2]));
     if bg {
@@ -261,6 +283,7 @@ pub fn ansi_indexed(rgb: [u8; 4], bg: bool) -> String {
     }
 }
 
+/// Convert rgb to ansi
 pub fn ansi_color(rgb: [u8; 4], bg: bool) -> String {
     if support::truecolor() {
         ansi_rgb(rgb, bg)

@@ -8,6 +8,7 @@ mod iterm;
 mod kitty;
 mod sixel;
 
+/// Preview an image to stdout with the given options
 pub fn preview(stdout: &mut impl Write, options: &mut Options) -> Result {
     let protocol = Protocol::choose(options);
     let image_paths = options.path.clone();
@@ -30,5 +31,6 @@ pub fn preview(stdout: &mut impl Write, options: &mut Options) -> Result {
             Protocol::Blocks => blocks::preview(stdout, image_path, options)?,
         }
     }
+
     Ok(())
 }

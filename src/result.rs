@@ -1,11 +1,18 @@
 #[derive(Debug)]
 pub enum Error {
+    /// Input/Output error
     Io(std::io::Error),
+    /// Image error
     Image(image::error::ImageError),
+    /// Libsixel error
     Sixel(sixel_rs::status::Error),
+    /// ImageSize error
     ImageSize(imagesize::ImageError),
+    /// Tempfile error
     Tempfile(tempfile::PersistError),
+    /// Threading error
     Channel(crossbeam_channel::SendError<bool>),
+    /// CTRL-C error
     Ctrlc(ctrlc::Error),
 }
 

@@ -18,6 +18,7 @@ const SIXEL_SUPPORTED: [&str; 7] = [
 
 const ITERM_SUPPORTED: [&str; 3] = ["iTerm", "WezTerm", "mintty"];
 
+/// Supported previewing protocols
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Protocol {
     Kitty,
@@ -27,6 +28,7 @@ pub enum Protocol {
 }
 
 impl Protocol {
+    /// Choose the best protocol for previewing
     pub fn choose(options: &Options) -> Self {
         if let Some(protocol) = options.protocol {
             protocol
@@ -83,11 +85,11 @@ impl std::fmt::Display for Protocol {
     }
 }
 
-pub fn find_match(list: &[&str], var: &str) -> bool {
+fn find_match(list: &[&str], var: &str) -> bool {
     list.iter().any(|s| var.contains(s))
 }
 
-pub fn check_primary_attributes(attrs: &[Vec<&str>], subcommand: Option<&[u8]>) -> Result<bool> {
+fn check_primary_attributes(attrs: &[Vec<&str>], subcommand: Option<&[u8]>) -> Result<bool> {
     let mut stdout = Term::stdout();
     let command = [subcommand.unwrap_or_default(), b"\x1b[c"].concat();
     stdout.write_all(&command)?;
@@ -108,6 +110,7 @@ pub fn check_primary_attributes(attrs: &[Vec<&str>], subcommand: Option<&[u8]>) 
     Ok(attrs.iter().all(|group| find_match(group, &response)))
 }
 
+/// Check if the terminal supports truecolor
 pub fn truecolor() -> bool {
     let colorterm = env::var("COLORTERM").unwrap_or_default();
     matches!(colorterm.as_str(), "truecolor" | "24bit")

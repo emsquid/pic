@@ -1,7 +1,7 @@
 use crate::options::Options;
 use crate::result::Result;
 use crate::utils::{
-    create_temp_file, fit_in_bounds, handle_spacing, move_cursor, save_in_tmp_file,
+    create_temp_file, fit_in_bounds, handle_spacing, move_cursor, save_in_temp_file,
 };
 use base64::{engine::general_purpose, Engine as _};
 use image::io::Reader;
@@ -38,7 +38,7 @@ fn load(stdout: &mut impl Write, id: u32, image_path: &PathBuf, _options: &Optio
         .to_rgba8();
     let (width, height) = image.dimensions();
     let (mut tempfile, pathbuf) = create_temp_file(KITTY_PREFIX)?;
-    save_in_tmp_file(image.as_raw(), &mut tempfile)?;
+    save_in_temp_file(image.as_raw(), &mut tempfile)?;
 
     let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
     send_graphics_command(stdout, &command, pathbuf.to_str())
@@ -67,7 +67,7 @@ fn display(
         let (width, height) = image.dimensions();
         let (cols, rows) =
             fit_in_bounds(width, height, options.cols, options.rows, options.upscale)?;
-        save_in_tmp_file(image.as_raw(), &mut tempfile)?;
+        save_in_temp_file(image.as_raw(), &mut tempfile)?;
 
         let command = format!("a=T,t=t,I=13,f=32,s={width},v={height},c={cols},r={rows},q=2",);
         (command, pathbuf.to_str())
