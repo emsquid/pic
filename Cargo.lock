@@ -69,24 +69,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "cip"
-version = "0.1.2"
-dependencies = [
- "ansi_colours",
- "base64",
- "clap",
- "console",
- "crossbeam-channel",
- "ctrlc",
- "image",
- "imagesize",
- "libc",
- "sixel-rs",
- "tempfile",
- "wild",
-]
-
-[[package]]
 name = "clap"
 version = "4.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -574,6 +556,24 @@ name = "os_str_bytes"
 version = "6.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
+
+[[package]]
+name = "pic"
+version = "0.1.0"
+dependencies = [
+ "ansi_colours",
+ "base64",
+ "clap",
+ "console",
+ "crossbeam-channel",
+ "ctrlc",
+ "image",
+ "imagesize",
+ "libc",
+ "sixel-rs",
+ "tempfile",
+ "wild",
+]
 
 [[package]]
 name = "pin-project"
