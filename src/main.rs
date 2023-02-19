@@ -1,5 +1,4 @@
 use clap::Parser;
-use pic;
 
 fn main() {
     let mut stdout = std::io::stdout();

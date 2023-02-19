@@ -2,6 +2,7 @@ use crate::support::Protocol;
 use clap::{arg, command, Parser};
 use std::path::PathBuf;
 
+/// Options for previewing an image in terminal
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Options {
@@ -49,6 +50,7 @@ pub struct Options {
 }
 
 impl Options {
+    /// New options for images
     pub fn new(path: Vec<PathBuf>) -> Self {
         Self {
             path,
@@ -67,34 +69,41 @@ impl Options {
         }
     }
 
+    /// Set position of images in the terminal
     pub fn set_position(&mut self, x: Option<u32>, y: Option<u32>) {
         self.x = x;
         self.y = y;
     }
 
+    /// Set size of images in the terminal
     pub fn set_size(&mut self, cols: Option<u32>, rows: Option<u32>) {
         self.cols = cols;
         self.rows = rows;
     }
 
+    /// Set spacing of images in the terminal
     pub fn set_spacing(&mut self, spacing: Option<u32>) {
         self.spacing = spacing;
     }
 
+    /// Upscale images
     pub fn upscale(&mut self) {
         self.upscale = true;
     }
 
+    /// Set GIFs to be static
     pub fn set_static(&mut self) {
         self.gif_static = true;
         self.gif_loop = false;
     }
 
+    /// Set GIFs to loop
     pub fn set_loop(&mut self) {
         self.gif_static = false;
         self.gif_loop = true;
     }
 
+    /// Set options for kitty
     pub fn set_kitty(&mut self, load: Option<u32>, display: Option<u32>, clear: Option<u32>) {
         if self.protocol == Some(Protocol::Kitty) {
             self.load = load;

@@ -3,6 +3,7 @@
 PIC (**P**review **I**mage in **C**LI ) is a lightweight Rust tool to preview images in your terminal!
 <br>
 With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/kitty/graphics-protocol/), [`Sixel`](https://saitoha.github.io/libsixel/), [`iTerm`](https://iterm2.com/documentation-images.html)) it works in several terminals, and can still use Unicode blocks in case your terminal isn't supported.
+PIC also provides a library for you to use in your own tools!
 
 ## Features
 
@@ -21,7 +22,7 @@ With support for various image protocols ([`Kitty`](https://sw.kovidgoyal.net/ki
 
 ## Installation
 
-### From source
+### From source (Recommended)
 
 Prerequisites
 - [Git](https://git-scm.com/downloads)
@@ -37,6 +38,31 @@ cargo install --path pic
 
 # Use freely
 pic Images/YourFavouriteImage.png --cols 13 ...
+```
+
+### From Cargo
+
+Prerequisites
+- [Rust toolchain](https://www.rust-lang.org/tools/install)
+
+Command line instructions
+```bash
+# Build and install
+cargo install pic
+
+# Use freely again
+pic Images/YourFavouriteImage.png --cols 13 ...
+```
+
+### As a library
+
+Prerequisites
+- [Rust toolchain](https://www.rust-lang.org/tools/install)
+
+Command line instructions
+```bash
+# Add the dependency in your project directory
+cargo add pic
 ```
 
 ## Examples
@@ -82,6 +108,28 @@ Options:
       --clear <ID>           Clear image with the given id (0 for all) (kitty only)
   -h, --help                 Print help
   -V, --version              Print version
+```
+
+## Library usage 
+
+```rust
+use pic
+
+fn main() {
+    // Choose images to preview
+    let path1 = std::path::PathBuf::from("Picture/MyFavImage.png");
+    let mut options = pic::options::Options::new(vec![path1]);
+
+    // Set your options
+    options.set_position(Some(10), None);
+    options.set_size(Some(50), Some(50));
+    options.upscale();
+
+    // Preview
+    if let Err(err) = pic::previewer::preview(&mut std::io::stdout(), &mut options) {
+        eprintln!("{err}");
+    };
+}
 ```
 
 ## Notes 
