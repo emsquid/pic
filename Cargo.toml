@@ -7,6 +7,7 @@ description = "Preview Image in CLI."
 repository = "https://github.com/emsquid/pic"
 readme = "README.md"
 license = "MIT"
+exclude = ["examples"]
 
 [lib]
 name = "pic"
