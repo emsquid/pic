@@ -12,26 +12,37 @@ const KITTY_PREFIX: &str = "pic.tty-graphics-protocol.";
 const PROTOCOL_START: &str = "\x1b_G";
 const PROTOCOL_END: &str = "\x1b\\";
 
-fn send_graphics_command(stdout: &mut impl Write, command: &str, payload: Option<&str>) -> Result {
+fn send_graphics_command(
+    stdout: &mut impl Write,
+    command: &str,
+    payload: Option<&str>,
+    newline: bool,
+) -> Result {
     let data = general_purpose::STANDARD.encode(payload.unwrap_or_default());
     let command = format!("{PROTOCOL_START}{command};{data}{PROTOCOL_END}");
 
     stdout.write_all(command.as_bytes())?;
-    stdout.write_all(b"\n")?;
-
+    if newline {
+        stdout.write_all(b"\n")?;
+    }
     stdout.flush()?;
     Ok(())
 }
 
-fn clear(stdout: &mut impl Write, id: u32, _options: &Options) -> Result {
+fn clear(stdout: &mut impl Write, id: u32, options: &Options) -> Result {
     if id == 0 {
-        send_graphics_command(stdout, "a=d,d=a", None)
+        send_graphics_command(stdout, "a=d,d=a", None, !options.no_newline)
     } else {
-        send_graphics_command(stdout, &format!("a=d,d=i,i={id}"), None)
+        send_graphics_command(
+            stdout,
+            &format!("a=d,d=i,i={id}"),
+            None,
+            !options.no_newline,
+        )
     }
 }
 
-fn load(stdout: &mut impl Write, id: u32, image_path: &PathBuf, _options: &Options) -> Result {
+fn load(stdout: &mut impl Write, id: u32, image_path: &PathBuf, options: &Options) -> Result {
     let image = Reader::open(image_path)?
         .with_guessed_format()?
         .decode()?
@@ -41,7 +52,7 @@ fn load(stdout: &mut impl Write, id: u32, image_path: &PathBuf, _options: &Optio
     save_in_temp_file(image.as_raw(), &mut tempfile)?;
 
     let command = format!("a=t,t=t,f=32,s={width},v={height},i={id},q=2");
-    send_graphics_command(stdout, &command, pathbuf.to_str())
+    send_graphics_command(stdout, &command, pathbuf.to_str(), !options.no_newline)
 }
 
 fn display(
@@ -74,7 +85,7 @@ fn display(
     };
 
     move_cursor(stdout, options.x, options.y)?;
-    send_graphics_command(stdout, &command, payload)?;
+    send_graphics_command(stdout, &command, payload, !options.no_newline)?;
 
     Ok(())
 }

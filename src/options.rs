@@ -31,6 +31,9 @@ pub struct Options {
     /// Upscale image if needed
     #[arg(short, long)]
     pub upscale: bool,
+    /// Don't print newline after preview
+    #[arg(short, long)]
+    pub no_newline: bool,
     /// Only show first frame of GIFs
     #[arg(short = 's', long = "static", conflicts_with("gif_loop"))]
     pub gif_static: bool,
@@ -63,6 +66,7 @@ impl Options {
             upscale: false,
             gif_static: false,
             gif_loop: false,
+            no_newline: false,
             load: None,
             display: None,
             clear: None,
@@ -89,6 +93,11 @@ impl Options {
     /// Upscale images
     pub fn upscale(&mut self) {
         self.upscale = true;
+    }
+
+    /// No newline after image
+    pub fn no_newline(&mut self) {
+        self.no_newline = true;
     }
 
     /// Set GIFs to be static

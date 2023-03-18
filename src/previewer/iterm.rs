@@ -24,10 +24,14 @@ fn display(stdout: &mut impl Write, image_path: &PathBuf, options: &mut Options)
         _ => general_purpose::STANDARD.encode(buffer),
     };
 
-    let command = format!("\x1b]1337;File=width={cols};height={rows};inline=1;:{data}\x07\r");
+    let command = format!("\x1b]1337;File=width={cols};height={rows};inline=1;:{data}\x07");
 
     move_cursor(stdout, options.x, options.y)?;
     stdout.write_all(command.as_bytes())?;
+
+    if !options.no_newline {
+        stdout.write_all(b"\r")?;
+    }
 
     stdout.flush()?;
     Ok(())

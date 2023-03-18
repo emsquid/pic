@@ -89,20 +89,22 @@ And also nice in Blocks
 ```
 Preview Image in CLI.
 
-Usage: pic [OPTIONS] <PATH>
+Usage: pic [OPTIONS] [PATH]...
 
 Arguments:
-  <PATH>  Image to preview
+  [PATH]...  Image(s) to preview
 
 Options:
+  -p, --protocol <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
   -x, --x <X>                x position (0 is left)
   -y, --y <Y>                y position (0 is top)
   -c, --cols <COLS>          Number of cols to fit the preview in
   -r, --rows <ROWS>          Number of rows to fit the preview in
+      --spacing <SPACING>    Spacing between images if more than one file is provided
   -u, --upscale              Upscale image if needed
+  -n, --no-newline           Don't print newline after preview
   -s, --static               Only show first frame of GIFs
   -l, --loop                 Loop GIFs infinitely
-  -p, --protocol <PROTOCOL>  Previewing protocol to use [possible values: kitty, sixel, iterm, blocks]
       --load <ID>            Load image with the given id (kitty only)
       --display <ID>         Display image with the given id (kitty only)
       --clear <ID>           Clear image with the given id (0 for all) (kitty only)

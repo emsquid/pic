@@ -65,7 +65,7 @@ fn display_frame(stdout: &mut impl Write, image: &DynamicImage, options: &Option
 
         if is_bg {
             move_cursor(stdout, options.x, None)?;
-        } else {
+        } else if r != (rgba.height() - 1) as u32 || !options.no_newline {
             stdout.write_all(b"\n")?;
         };
     }
